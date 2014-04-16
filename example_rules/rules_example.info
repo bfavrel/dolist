@@ -1,0 +1,4 @@
+name = Rules Example
+description = Test module to add actions
+core = 7.x    
+package = Test Rules
