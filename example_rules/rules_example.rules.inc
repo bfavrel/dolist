@@ -25,6 +25,7 @@ function rules_example_actions_test(){
 	drupal_set_message(t('Test rules actions'));
 }
 
+
 function rules_example_actions_test_user($account){
 	drupal_set_message(t('Test rules with parameter with @username',
 	array('@username' => $account->name)));
