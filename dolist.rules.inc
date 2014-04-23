@@ -34,10 +34,6 @@ function dolist_rules_action_info(){
 					'type' => 'text',
 					'label' => t('Ville'),
 					),
-				'pays' => array (
-					'type' => 'text',
-					'label' => t('Pays'),
-					),
 				'telephone' => array (
 					'type' => 'text',
 					'label' => t('Téléphone'),
@@ -53,7 +49,7 @@ function dolist_rules_action_info(){
 );
 	return $actions;
 }
- function dolist_actions($email,$name,$firstname,$societe,$adresse,$codepostal,$ville,$pays,$telephone,$mobile){
+ function dolist_actions($email,$name,$firstname,$societe,$adresse,$codepostal,$ville,$telephone,$mobile){
  	
  	try
  	{
@@ -82,8 +78,7 @@ function dolist_rules_action_info(){
  		if (!is_null($result->GetAuthenticationTokenResult) and $result->GetAuthenticationTokenResult != '') {
  			if ($result->GetAuthenticationTokenResult->Key != '') {
  				/** Si le token existe on affiche ses informations **/
- 				drupal_set_message(t('Informations concernant le token  d authentification : @date ',
- 		array('@date' => $result->GetAuthenticationTokenResult->DeprecatedDate)));
+ 		
 
  			/** ON CREE UN CONTACT **/
  					
@@ -101,38 +96,37 @@ function dolist_rules_action_info(){
  				);
  					
 
- 				drupal_set_message(t('email est @email',
- 				array('@email' => $email)));
- 				drupal_set_message(t('name est @name',
- 				array('@name' => $name)));
- 				drupal_set_message(t('firstname est @firstname',
- 				array('@firstname' => $firstname)));
- 				drupal_set_message(t('societe est @societe',
- 				array('@societe' => $societe)));
- 				drupal_set_message(t('adresse est @adresse',
- 				array('@adresse' => $adresse)));
- 				drupal_set_message(t('codepostal est @codepostal',
- 				array('@codepostal' => $codepostal)));
- 				drupal_set_message(t('ville est @ville',
- 				array('@ville' => $ville)));
- 				drupal_set_message(t('pays est @pays',
- 				array('@pays' => $pays)));
- 				drupal_set_message(t('telephone est @telephone',
- 				array('@telephone' => $telephone)));
- 				drupal_set_message(t('mobile est @mobile',
- 				array('@mobile' => $mobile)));
+ 			
  				
  				$fields[] = array(
  						'Name' => 'firstname',
- 						'Value' => 'florian');
+ 						'Value' => $firstname);
  				$fields[] = array(
  						'Name' => 'lastname',
- 						'Value' => 'castandet');
- 					
+ 						'Value' => $name);
+ 				$fields[] = array(
+ 						'Name' => 'company',
+ 						'Value' => $societe);
+ 				$fields[] = array(
+ 						'Name' => 'address1',
+ 						'Value' => $adresse);
+ 				$fields[] = array(
+ 						'Name' => 'zipcode',
+ 						'Value' => $codepostal);
+ 				$fields[] = array(
+ 						'Name' => 'city',
+ 						'Value' => $ville);
+ 				$fields[] = array(
+ 						'Name' => 'phone',
+ 						'Value' => $telephone);
+ 				$fields[] = array(
+ 						'Name' => 'mobile',
+ 						'Value' => $mobile);
+ 				
  				$interests[] = array();
- 					
+ 				$e=trim($email);
  				$contact = array(
- 						'Email' => 'flo.dorient@hotmail.fr',
+ 						'Email' => $e,
  						'Fields' => $fields,
  						'InterestsToAdd' => $interests, //la liste des identifiants des interets déclarés à associer au contact
  						'InterestsToDelete' => $interests, //la liste des identifiants des interets déclarés à supprimer sur le contact
@@ -140,7 +134,6 @@ function dolist_rules_action_info(){
  						'OptoutMobile'=> 0 //0: inscription, 1:désinscription
  				);
  					
- 				
  				$contactRequest = array(
  						'token'=> $token,
  						'contact'=> $contact
