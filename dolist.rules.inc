@@ -1,182 +1,186 @@
-<?php 
+<?php
 
 function dolist_rules_action_info(){
-	$actions = array (
-		'dolist_actions' => array(
-			'label' => t('Action Dolist'),
-			'group' => t('Dolist'),
-			'parameter' => array(
-				'email' => array(
-					'type' => 'text',
-					'label' => t('Email'),	
-						),
-				'name' => array (
-					'type' => 'text',
-					'label' => t('Name'),
-				),
-				'firstname' => array (
-					'type' => 'text',
-					'label' => t('Firstname'),
-					),
-				'societe' => array (
-					'type' => 'text',
-					'label' => t('Société'),
-					),
-				'adresse' => array (
-					'type' => 'text',
-					'label' => t('Adresse'),
-					),
-				'codepostal' => array (
-					'type' => 'text',
-					'label' => t('Code Postal'),
-					),
-				'ville' => array (
-					'type' => 'text',
-					'label' => t('Ville'),
-					),
-				'telephone' => array (
-					'type' => 'text',
-					'label' => t('Téléphone'),
-					),
-				'mobile' => array (
-					'type' => 'text',
-					'label' => t('Mobile'),
-					),
-			
-				),
-		),
-		
+$actions = array (
+'dolist_actions' => array(
+'label' => t('Action Dolist'),
+'group' => t('Dolist'),
+'parameter' => array(
+'email' => array(
+'type' => 'text',
+'label' => t('Email'),
+),
+
+
+),
+),
+
 );
-	return $actions;
+return $actions;
 }
- function dolist_actions($email,$name,$firstname,$societe,$adresse,$codepostal,$ville,$telephone,$mobile){
- 	
- 	try
- 	{
+ function dolist_actions($email){
+ 
+  try
+  {
 
- 		ini_set("soap.wsdl_cache_enabled", "0");
- 		ini_set("default_socket_timeout", 480);
- 	
- 	
- 		// Url du contrat wsdl
- 		$proxywsdl = "http://api.dolist.net/V2/AuthenticationService.svc?wsdl";
- 		$location = "http://api.dolist.net/V2/AuthenticationService.svc/soap1.1";
- 	
- 		// Génération du proxy
- 		$client = new SoapClient($proxywsdl, array('trace' => 1, 'location' => $location));
- 	
- 		// Renseigner la clé d'authentification avec l'identifiant client
- 		$authenticationInfos	= array('AuthenticationKey' => '7PI2bqJaQcr7XnoG5NGAnXUJDfGis+8+dtdf+lAfXZSGPebEqTTLpz2sP4GodFcbJg6MtKSpwnpJNghu1FBU2g==','AccountID' => 4930);
- 		$authenticationRequest	= array('authenticationRequest' => $authenticationInfos);
- 	
- 		// Demande du jeton d'authentification
- 		$result = $client->GetAuthenticationToken($authenticationRequest);
- 	
- 		
+  ini_set("soap.wsdl_cache_enabled", "0");
+  ini_set("default_socket_timeout", 480);
+ 
+ 
+  // Url du contrat wsdl
+  $proxywsdl = "http://api.dolist.net/V2/AuthenticationService.svc?wsdl";
+  $location = "http://api.dolist.net/V2/AuthenticationService.svc/soap1.1";
+ 
+  // Génération du proxy
+  $client = new SoapClient($proxywsdl, array('trace' => 1, 'location' => $location));
+ 
+  // Renseigner la clé d'authentification avec l'identifiant client
+  $authenticationInfos = array('AuthenticationKey' => 'yt6nVpjU8fmmiNVq3hI9Ad9pJ+IXtTXvUpWcjbJmpvbw8afiXKIWf6AGsvj7GbgpozidySYBUUZ36dGX0WSS8A==','AccountID' => 4930);
+  $authenticationRequest = array('authenticationRequest' => $authenticationInfos);
+ 
+  // Demande du jeton d'authentification
+  $result = $client->GetAuthenticationToken($authenticationRequest);
+ 
+ 
 
- 	
- 		if (!is_null($result->GetAuthenticationTokenResult) and $result->GetAuthenticationTokenResult != '') {
- 			if ($result->GetAuthenticationTokenResult->Key != '') {
- 				/** Si le token existe on affiche ses informations **/
- 		
+ 
+  if (!is_null($result->GetAuthenticationTokenResult) and $result->GetAuthenticationTokenResult != '') {
+  if ($result->GetAuthenticationTokenResult->Key != '') {
+  /** Si le token existe on affiche ses informations **/
+ 
 
- 			/** ON CREE UN CONTACT **/
- 					
- 				// Url du contrat wsdl
- 				$proxywsdlContact = "http://api.dolist.net/V2/ContactManagementService.svc?wsdl";
- 				$locationContact = "http://api.dolist.net/V2/ContactManagementService.svc/soap1.1";
- 					
- 				// Génération du proxy
- 				$clientContact = new SoapClient($proxywsdlContact, array('trace' => 1, 'location' => $locationContact));
- 				
- 				// Création du jeton
- 				$token = array(
- 						'AccountID' => 4930,
- 						'Key' => $result->GetAuthenticationTokenResult->Key
- 				);
- 					
+  /** ON CREE UN CONTACT **/
+ 
+  // Url du contrat wsdl
+  $proxywsdlContact = "http://api.dolist.net/V2/ContactManagementService.svc?wsdl";
+  $locationContact = "http://api.dolist.net/V2/ContactManagementService.svc/soap1.1";
+ 
+  // Génération du proxy
+  $clientContact = new SoapClient($proxywsdlContact, array('trace' => 1, 'location' => $locationContact));
+ 
+  // Création du jeton
+  $token = array(
+  'AccountID' => 4930,
+  'Key' => $result->GetAuthenticationTokenResult->Key
+  );
+ 
 
- 			
- 				
- 				$fields[] = array(
- 						'Name' => 'firstname',
- 						'Value' => $firstname);
- 				$fields[] = array(
- 						'Name' => 'lastname',
- 						'Value' => $name);
- 				$fields[] = array(
- 						'Name' => 'company',
- 						'Value' => $societe);
- 				$fields[] = array(
- 						'Name' => 'address1',
- 						'Value' => $adresse);
- 				$fields[] = array(
- 						'Name' => 'zipcode',
- 						'Value' => $codepostal);
- 				$fields[] = array(
- 						'Name' => 'city',
- 						'Value' => $ville);
- 				$fields[] = array(
- 						'Name' => 'phone',
- 						'Value' => $telephone);
- 				$fields[] = array(
- 						'Name' => 'mobile',
- 						'Value' => $mobile);
- 				
- 				$interests[] = array();
- 				$e=trim($email);
- 				$contact = array(
- 						'Email' => $e,
- 						'Fields' => $fields,
- 						'InterestsToAdd' => $interests, //la liste des identifiants des interets déclarés à associer au contact
- 						'InterestsToDelete' => $interests, //la liste des identifiants des interets déclarés à supprimer sur le contact
- 						'OptoutEmail' => 0, //0: inscription, 1:désinscription
- 						'OptoutMobile'=> 0 //0: inscription, 1:désinscription
- 				);
- 					
- 				$contactRequest = array(
- 						'token'=> $token,
- 						'contact'=> $contact
- 				);
- 					
- 				// Enregistrement du contact
- 				$result = $clientContact->SaveContact($contactRequest);
- 				
- 				if (!is_null($result->SaveContactResult) and $result->SaveContactResult != '')
- 				{
- 					$ticket = $result->SaveContactResult;
- 						
- 					$contactRequest = array(
- 							'token'=> $token,
- 							'ticket'=> $ticket
- 					);
- 				
- 					//recuperation de rsultat de l'opération (peut ne pas être disponible de suite)
- 					$resultContact = $clientContact->GetStatusByTicket($contactRequest);
- 				
- 					var_dump($resultContact->GetStatusByTicketResult);
- 				}
- 				else
- 				{
- 					echo "Erreur sur la mise à jour du contact";
- 				}
-		}
- 			
- 			else {
- 				drupal_set_message(t('Problème sur le token d authentification'));
- 				
- 			}
- 		}
- 		else
- 		{
- 			drupal_set_message(t('Le token est null'));
- 		}
- 	}
- 	//Gestion d'erreur
- 	catch(SoapFault $fault)
- 	{
- 		drupal_set_message(t('Erreur'));
- 	}
+ 
+ 
+
+  $fields[] = array(
+  'Name' => 'firstname',
+  'Value' => 'florian');
+ 
+  $interests[] = array();
+  $e=trim($email);
+  $contact = array(
+  'Email' => $e,
+  'Fields' => $fields,
+  'InterestsToAdd' => $interests, //la liste des identifiants des interets déclarés à associer au contact
+  'InterestsToDelete' => $interests, //la liste des identifiants des interets déclarés à supprimer sur le contact
+  'OptoutEmail' => 0, //0: inscription, 1:désinscription
+  'OptoutMobile'=> 0 //0: inscription, 1:désinscription
+  );
+ 
+  $contactRequest = array(
+  'token'=> $token,
+  'contact'=> $contact
+  );
+ 
+  // Enregistrement du contact
+  $result = $clientContact->SaveContact($contactRequest);
+ 
+  if (!is_null($result->SaveContactResult) and $result->SaveContactResult != '')
+  {
+  $ticket = $result->SaveContactResult;
+ 
+  $contactRequest = array(
+  'token'=> $token,
+  'ticket'=> $ticket
+  );
+ 
+  //r	ecuperation de rsultat de l'opération (peut ne pas être disponible de suite)
+  $resultContact = $clientContact->GetStatusByTicket($contactRequest);
+ 
+  var_dump($resultContact->GetStatusByTicketResult);
+  
+  /******************************************/
+  /* LECTURE  DES CONTACTS */
+  /******************************************/
+  // Création du jeton
+
+  
+   //La list des champs d'un contact à retourner.
+  $fields[] = array('firstname');
+  	
+  //Les critères de recherche des contacts
+  $contactFilter = array(
+  		'Email' => $email);
+  	
+  
+  $contactRequest = array(
+  		'ReturnFields' => $fields, //Optionnel si AllFields=true
+  		'Offset' => 0, //Optionnel: L'indice du 1er contact retourné.
+  		'AllFields' => true, //Indique si on doit retourner tous les champs
+  		'Interest' => true, //Indique si les interets déclarés sont retourné par la requete
+  		'LastModifiedOnly' => false, //Indique si la requete doit retourner uniquement les derniers contacts modifiés
+  		'RequestFilter' => $contactFilter); //Optionnel
+  	
+  $request = array(
+  'token'=> $token,
+  'request'=> $contactRequest
+			);
+  				
+  			// Récupération de tous les contacts
+  			$result = $clientContact->GetContact($request);
+  
+  			if (!is_null($result->GetContactResult) and $result->GetContactResult != '')
+  			{
+  			$contacts = $result->GetContactResult->ContactList->ContactData->CustomFields->CustomField;
+  			
+
+  			
+  			// ICI ON AFFICHE LES CHAMPS DE LA FICHE CONTACT (MEME LES CHAMPS NON REMPLIS) SEULEMENT SI LE CONTACT EXISTE DEJA
+  			foreach($contacts as $valeur)
+  			{
+  				
+  			
+  			drupal_set_message(t('Nombre total de contacts @r',
+  			array('@r' => $valeur->Name)));
+  			}
+  			}
+  			else
+  			{
+  			echo "Aucun contact n'a été trouvé";
+  			}
+		
+		
+			/******************************************/
+  
+  }
+  else
+  {
+  echo "Erreur sur la mise à jour du contact";
+  }
+}
+ 
+  else {
+  drupal_set_message(t('Problème sur le token d authentification'));
+ 
+  }
+  }
+  else
+  {
+  drupal_set_message(t('Le token est null'));
+  }
+  }
+  //Gestion d'erreur
+  catch(SoapFault $fault)
+  {
+  drupal_set_message(t('Erreur'));
+  }
+  
  }
 
 ?>
