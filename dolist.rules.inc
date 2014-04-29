@@ -18,6 +18,10 @@ $actions = array (
 );
 return $actions;
 }
+ 
+ 
+ 
+ 
  function dolist_actions($email){
  
   try
@@ -75,7 +79,7 @@ return $actions;
   $interests[] = array();
   $e=trim($email);
   $contact = array(
-  'Email' => $e,
+  'Email' => $email,
   'Fields' => $fields,
   'InterestsToAdd' => $interests, //la liste des identifiants des interets déclarés à associer au contact
   'InterestsToDelete' => $interests, //la liste des identifiants des interets déclarés à supprimer sur le contact
@@ -104,20 +108,76 @@ return $actions;
   $resultContact = $clientContact->GetStatusByTicket($contactRequest);
  
   var_dump($resultContact->GetStatusByTicketResult);
+  }
+  else
+  {
+  	echo "Erreur sur la mise à jour du contact";
+  }
+  }
+  else {
+  	drupal_set_message(t('Problème sur le token d authentification'));
   
-  /******************************************/
-  /* LECTURE  DES CONTACTS */
-  /******************************************/
-  // Création du jeton
+  }
+  }
 
+  else
+  {
+  	drupal_set_message(t('Le token est null'));
+  }
+  }
+  //Gestion d'erreur
+  catch(SoapFault $fault)
+  {
+  	drupal_set_message(t('Erreur'));
+  }
+   
+ 
+  /******************************************/
+  /* LECTURE DES CONTACTS */
+  /******************************************/
   
-   //La list des champs d'un contact à retourner.
+  // Url du contrat wsdl
+  $proxywsdl = "http://api.dolist.net/V2/AuthenticationService.svc?wsdl";
+  $location = "http://api.dolist.net/V2/AuthenticationService.svc/soap1.1";
+  
+  // Génération du proxy
+  $client = new SoapClient($proxywsdl, array('trace' => 1, 'location' => $location));
+  
+  // Renseigner la clé d'authentification avec l'identifiant client
+  $authenticationInfos = array('AuthenticationKey' => 'yt6nVpjU8fmmiNVq3hI9Ad9pJ+IXtTXvUpWcjbJmpvbw8afiXKIWf6AGsvj7GbgpozidySYBUUZ36dGX0WSS8A==','AccountID' => 4930);
+  $authenticationRequest = array('authenticationRequest' => $authenticationInfos);
+  
+  // Demande du jeton d'authentification
+  $result = $client->GetAuthenticationToken($authenticationRequest);
+  
+  
+  
+  
+  if (!is_null($result->GetAuthenticationTokenResult) and $result->GetAuthenticationTokenResult != '') {
+  	if ($result->GetAuthenticationTokenResult->Key != '') {
+  
+  
+  
+  
+  // Url du contrat wsdl
+  $proxywsdlContact = "http://api.dolist.net/V2/ContactManagementService.svc?wsdl";
+  $locationContact = "http://api.dolist.net/V2/ContactManagementService.svc/soap1.1";
+  
+  // Génération du proxy
+  $clientContact = new SoapClient($proxywsdlContact, array('trace' => 1, 'location' => $locationContact));
+  
+  // Création du jeton
+  $token = array(
+  		'AccountID' => 4930,
+  		'Key' => $result->GetAuthenticationTokenResult->Key
+  );
+  //La list des champs d'un contact à retourner.
   $fields[] = array('firstname');
-  	
+  
   //Les critères de recherche des contacts
   $contactFilter = array(
   		'Email' => $email);
-  	
+  
   
   $contactRequest = array(
   		'ReturnFields' => $fields, //Optionnel si AllFields=true
@@ -126,61 +186,39 @@ return $actions;
   		'Interest' => true, //Indique si les interets déclarés sont retourné par la requete
   		'LastModifiedOnly' => false, //Indique si la requete doit retourner uniquement les derniers contacts modifiés
   		'RequestFilter' => $contactFilter); //Optionnel
-  	
+  
   $request = array(
-  'token'=> $token,
-  'request'=> $contactRequest
-			);
-  				
-  			// Récupération de tous les contacts
-  			$result = $clientContact->GetContact($request);
+  		'token'=> $token,
+  		'request'=> $contactRequest
+  );
   
-  			if (!is_null($result->GetContactResult) and $result->GetContactResult != '')
-  			{
-  			$contacts = $result->GetContactResult->ContactList->ContactData->CustomFields->CustomField;
-  			
-
-  			
-  			// ICI ON AFFICHE LES CHAMPS DE LA FICHE CONTACT (MEME LES CHAMPS NON REMPLIS) SEULEMENT SI LE CONTACT EXISTE DEJA
-  			foreach($contacts as $valeur)
-  			{
-  				
-  			
-  			drupal_set_message(t('Nombre total de contacts @r',
-  			array('@r' => $valeur->Name)));
-  			}
-  			}
-  			else
-  			{
-  			echo "Aucun contact n'a été trouvé";
-  			}
-		
-		
-			/******************************************/
+  // Récupération de tous les contacts
+  $resultGet = $clientContact->GetContact($request);
   
+  if (!is_null($resultGet->GetContactResult) and $resultGet->GetContactResult != '')
+  {
+  	$contacts = $resultGet->GetContactResult->ContactList->ContactData->CustomFields->CustomField;
+  
+  
+  	// ICI ON AFFICHE LES CHAMPS DE LA FICHE CONTACT (MEME LES CHAMPS NON REMPLIS) SEULEMENT SI LE CONTACT EXISTE DEJA
+  	foreach($contacts as $valeur)
+  	{
+  
+  
+  		drupal_set_message(t('Nombre total de contacts @r',
+  		array('@r' => $valeur->Name)));
+  	}
   }
   else
   {
-  echo "Erreur sur la mise à jour du contact";
+  	echo "Aucun contact n'a été trouvé";
   }
-}
- 
-  else {
-  drupal_set_message(t('Problème sur le token d authentification'));
- 
-  }
-  }
-  else
-  {
-  drupal_set_message(t('Le token est null'));
-  }
-  }
-  //Gestion d'erreur
-  catch(SoapFault $fault)
-  {
-  drupal_set_message(t('Erreur'));
+  	}
   }
   
- }
-
+  /******************************************/
+ } 
+ 
+ 
+ 
 ?>

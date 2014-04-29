@@ -1,5 +1,53 @@
-<?php 
+<?php
 /**
- 
+ * @file
+ * (config_exemple.module) Module présentant des exemples de configuration.
  */
+
+function config_exemple_menu(){
+
+	$items['admin/config/config_dolist'] = array(
+			'title' => 'Config Dolist',
+			'description' => 'Configuration du module Dolist',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array('config_exemple_admin_form'),
+			'access arguments' => array('administer site configuration'),
+			'file' => 'config_dolist.admin.inc',
+			'type' => MENU_NORMAL_ITEM,
+	);
+
+	return $items;
+
+}
+
+function dolist_token_info() {
+	$info['types']['dolist'] = array( // define main group
+			'name' => t('Dolist group for tokens'),
+			'description' => t('Custom Group'),
+	);
+	$info['tokens']['dolist']['fname'] = array(
+			'name' => t('First name'),
+			'description' => t('First name re placer for fname '),
+	);
+	$info['tokens']['dolist']['lname'] = array(
+			'name' => t('Last name'),
+			'description' => t('Last name re placer for lname '),
+	);
+	
+	return $info;
+}
+
+function myhook_tokens($type, $tokens, array $data = array(), array $options = array()) {
+	$replacements = array();
+	$sanitize = !empty($options['sanitize']);
+	if ($type == 'dolist') {
+		foreach ($tokens as $name => $original) {
+			if (array_key_exists($name, $data)) {
+				$replacements[$original] = $data[$name];
+			}
+		}
+	}
+	return $replacements;
+}
 ?>
+
