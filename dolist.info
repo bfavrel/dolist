@@ -5,5 +5,4 @@ package = Dolist
 dependencies[] = token
 dependencies[] = token_filter
 dependencies[] = token_insert
-files[] = dolist.module
-configure = admin/config/config_dolist
+configure = admin/config/dolist

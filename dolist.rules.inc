@@ -10,15 +10,18 @@ $actions = array (
 'type' => 'text',
 'label' => t('Email'),
 ),
-
-
+),
+'provides' =>array(
+'emailfield'=> array(
+'type' => 'text',
+'label' => t('Field EMail'),
+),
 ),
 ),
 
 );
 return $actions;
 }
- 
  
  
  
@@ -198,7 +201,8 @@ return $actions;
   if (!is_null($resultGet->GetContactResult) and $resultGet->GetContactResult != '')
   {
   	$contacts = $resultGet->GetContactResult->ContactList->ContactData->CustomFields->CustomField;
-  
+    drupal_set_message(t('Nombre total de contacts @r',
+      array('@r' => krumo($contacts))));
   
   	// ICI ON AFFICHE LES CHAMPS DE LA FICHE CONTACT (MEME LES CHAMPS NON REMPLIS) SEULEMENT SI LE CONTACT EXISTE DEJA
   	foreach($contacts as $valeur)

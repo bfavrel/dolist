@@ -4,19 +4,24 @@
  * (config_exemple.module) Module présentant des exemples de configuration.
  */
 
-function config_exemple_menu(){
+ /**
+ * @file
+ * (config_exemple.module) Module présentant des exemples de configuration.
+ */
 
-	$items['admin/config/config_dolist'] = array(
-			'title' => 'Config Dolist',
-			'description' => 'Configuration du module Dolist',
-			'page callback' => 'drupal_get_form',
-			'page arguments' => array('config_exemple_admin_form'),
-			'access arguments' => array('administer site configuration'),
-			'file' => 'config_dolist.admin.inc',
-			'type' => MENU_NORMAL_ITEM,
-	);
+function dolist_menu(){
 
-	return $items;
+  $items['admin/config/dolist'] = array(
+    'title' => 'Config exemple',
+    'description' => 'Exemple de configuration ',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('dolist_admin_form'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'dolist.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
 
 }
 
@@ -25,19 +30,105 @@ function dolist_token_info() {
 			'name' => t('Dolist group for tokens'),
 			'description' => t('Custom Group'),
 	);
-	$info['tokens']['dolist']['fname'] = array(
-			'name' => t('First name'),
-			'description' => t('First name re placer for fname '),
-	);
-	$info['tokens']['dolist']['lname'] = array(
-			'name' => t('Last name'),
-			'description' => t('Last name re placer for lname '),
-	);
+	
+	ini_set("soap.wsdl_cache_enabled", "0");
+	ini_set("default_socket_timeout", 480);  
+	
+	// Url du contrat wsdl
+	$proxywsdl = "http://api.dolist.net/V2/AuthenticationService.svc?wsdl";
+	$location = "http://api.dolist.net/V2/AuthenticationService.svc/soap1.1";
+	
+	// Génération du proxy
+	$client = new SoapClient($proxywsdl, array('trace' => 1, 'location' => $location));            
+
+	// Renseigner la clé d'authentification avec l'identifiant client
+	$authenticationInfos	= array('AuthenticationKey' => variable_get('dolist_api'),'AccountID' => variable_get('dolist_id'));
+	$authenticationRequest	= array('authenticationRequest' => $authenticationInfos);
+
+	// Demande du jeton d'authentification
+	$result = $client->GetAuthenticationToken($authenticationRequest);
+	
+	if (!is_null($result->GetAuthenticationTokenResult) and $result->GetAuthenticationTokenResult != '') {
+		if ($result->GetAuthenticationTokenResult->Key != '') {
+			/******************************************/
+			/* LECTURE  DES CONTACTS */
+			/******************************************/
+			
+			// Url du contrat wsdl
+			$proxywsdlContact = "http://api.dolist.net/V2/ContactManagementService.svc?wsdl";
+			$locationContact = "http://api.dolist.net/V2/ContactManagementService.svc/soap1.1";
+			// Génération du proxy
+			$clientContact = new SoapClient($proxywsdlContact, array('trace' => 1, 'location' => $locationContact));
+			// Création du jeton
+			$token = array(
+				'AccountID' => variable_get('dolist_id'),
+				'Key' => $result->GetAuthenticationTokenResult->Key
+			);
+			//La list des champs d'un contact à retourner.
+			$fields[] = array('firstname', 'lastname');
+			//Les critères de recherche des contacts
+			$contactFilter = array(
+				'Email' => variable_get('dolist_email'));
+							
+		
+			$contactRequest = array(
+				
+				'Offset' => 0, //Optionnel: L'indice du 1er contact retourné. 
+				'AllFields' => true, //Indique si on doit retourner tous les champs
+				'Interest' => true, //Indique si les interets déclarés sont retourné par la requete
+				'LastModifiedOnly' => false, //Indique si la requete doit retourner uniquement les derniers contacts modifiés
+				'RequestFilter' => $contactFilter); //Optionnel		
+			
+			$request = array(
+				'token'=> $token,
+				'request'=> $contactRequest
+			);
+			
+			// Récupération de tous les contacts
+			$result = $clientContact->GetContact($request);
+
+			if (!is_null($result->GetContactResult) and $result->GetContactResult != '')
+			{
+				$contacts = $result->GetContactResult->ContactList;
+				$contacts = $result->GetContactResult->ContactList->ContactData->CustomFields->CustomField;
+   				
+
+   				// ICI ON AFFICHE LES CHAMPS DE LA FICHE CONTACT (MEME LES CHAMPS NON REMPLIS) SEULEMENT SI LE CONTACT EXISTE DEJA
+  				foreach($contacts as $valeur)
+  				{
+  
+  					$info['tokens']['dolist'][$valeur->Name] = array(
+					'name' => t($valeur->Name),
+					'description' => t('Champs contacts Dolist'),
+				);
+  					
+  				}
+					
+			
+			}
+			else
+			{
+				echo "Aucun contact n'a été trouvé";
+			}			
+			
+			
+			/******************************************/
+			
+			
+	}
+		else {
+		
+		}
+	}
+	else 
+	{
+		echo "Le token d'authentification est null.";
+	}
 	
 	return $info;
 }
 
-function myhook_tokens($type, $tokens, array $data = array(), array $options = array()) {
+function dolist_tokens($type, $tokens, array $data = array(), array $options = array()) {
 	$replacements = array();
 	$sanitize = !empty($options['sanitize']);
 	if ($type == 'dolist') {
