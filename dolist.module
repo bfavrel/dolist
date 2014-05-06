@@ -96,7 +96,8 @@ function dolist_token_info() {
    				// ICI ON AFFICHE LES CHAMPS DE LA FICHE CONTACT (MEME LES CHAMPS NON REMPLIS) SEULEMENT SI LE CONTACT EXISTE DEJA
   				foreach($contacts as $valeur)
   				{
-  
+  					/*drupal_set_message(t('field_email @f',
+            		array('@f' => field_get_items('entityform', 'inscriptionsansparams', 'field_email'))));*/
   					$info['tokens']['dolist'][$valeur->Name] = array(
 					'name' => t($valeur->Name),
 					'description' => t('Champs contacts Dolist'),
