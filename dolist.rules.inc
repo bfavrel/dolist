@@ -22,14 +22,14 @@ $actions = array (
       ),
       'replacement' => array(
         'type' => 'text',
-        'label' => t('Replacements'),
-        'description' => t('The new value to set for the specified field'),
+        'label' => t('Replacement'),
+        'description' => t('The field Dolist to be replaced'),
         'allow_null'=> FALSE,
       ),
       'field' => array(
         'type' => 'text',
-        'label' => t('Replacements'),
-        'description' => t('The new value to set for the specified field'),
+        'label' => t('Select the field to update'),
+        'description' => t('The replacement for the selected field'),
         'options list' => 'rules_fields_dolist_options_list',
       ),
     ),
@@ -91,8 +91,8 @@ return $actions;
  
 
   $fields[] = array(
-  'Name' => 'firstname',
-  'Value' => 'florian');
+  'Name' => null,
+  'Value' => null);
  
   $interests[] = array();
   $e=trim($email);
@@ -245,12 +245,112 @@ function rules_fields_dolist_options_list() {
 }
 
 function dolist_update($email,$field,$replacement){
-      drupal_set_message(t('Nombre total de contacts @r',
-      array('@r' => $field)));
-      drupal_set_message(t('Nombre total de contacts @r',
-      array('@r' => $email)));
-      drupal_set_message(t('Nombre total de contacts @r',
-      array('@r' => $replacement)));
+ try
+  {
+  
+  ini_set("soap.wsdl_cache_enabled", "0");
+  ini_set("default_socket_timeout", 480);
+ 
+ 
+  // Url du contrat wsdl
+  $proxywsdl = "http://api.dolist.net/V2/AuthenticationService.svc?wsdl";
+  $location = "http://api.dolist.net/V2/AuthenticationService.svc/soap1.1";
+ 
+  // Génération du proxy
+  $client = new SoapClient($proxywsdl, array('trace' => 1, 'location' => $location));
+ 
+  // Renseigner la clé d'authentification avec l'identifiant client
+  $authenticationInfos = array('AuthenticationKey' => 'yt6nVpjU8fmmiNVq3hI9Ad9pJ+IXtTXvUpWcjbJmpvbw8afiXKIWf6AGsvj7GbgpozidySYBUUZ36dGX0WSS8A==','AccountID' => 4930);
+  $authenticationRequest = array('authenticationRequest' => $authenticationInfos);
+ 
+  // Demande du jeton d'authentification
+  $result = $client->GetAuthenticationToken($authenticationRequest);
+ 
+ 
+
+ 
+  if (!is_null($result->GetAuthenticationTokenResult) and $result->GetAuthenticationTokenResult != '') {
+  if ($result->GetAuthenticationTokenResult->Key != '') {
+  /** Si le token existe on affiche ses informations **/
+ 
+
+  /** ON CREE UN CONTACT **/
+ 
+  // Url du contrat wsdl
+  $proxywsdlContact = "http://api.dolist.net/V2/ContactManagementService.svc?wsdl";
+  $locationContact = "http://api.dolist.net/V2/ContactManagementService.svc/soap1.1";
+ 
+  // Génération du proxy
+  $clientContact = new SoapClient($proxywsdlContact, array('trace' => 1, 'location' => $locationContact));
+ 
+  // Création du jeton
+  $token = array(
+  'AccountID' => 4930,
+  'Key' => $result->GetAuthenticationTokenResult->Key
+  );
+ 
+
+ 
+
+  $fields[] = array(
+  'Name' => $replacement,
+  'Value' => $field);
+ 
+  $interests[] = array();
+  $e=trim($email);
+  
+  $contact = array(
+  'Email' => $email,
+  'Fields' => $fields,
+  'InterestsToAdd' => $interests, //la liste des identifiants des interets déclarés à associer au contact
+  'InterestsToDelete' => $interests, //la liste des identifiants des interets déclarés à supprimer sur le contact
+  'OptoutEmail' => 0, //0: inscription, 1:désinscription
+  'OptoutMobile'=> 0 //0: inscription, 1:désinscription
+  );
+ 
+  $contactRequest = array(
+  'token'=> $token,
+  'contact'=> $contact
+  );
+ 
+  // Enregistrement du contact
+  $result = $clientContact->SaveContact($contactRequest);
+ 
+  if (!is_null($result->SaveContactResult) and $result->SaveContactResult != '')
+  {
+  $ticket = $result->SaveContactResult;
+ 
+  $contactRequest = array(
+  'token'=> $token,
+  'ticket'=> $ticket
+  );
+ 
+  //r ecuperation de rsultat de l'opération (peut ne pas être disponible de suite)
+  $resultContact = $clientContact->GetStatusByTicket($contactRequest);
+ 
+  var_dump($resultContact->GetStatusByTicketResult);
+  }
+  else
+  {
+    drupal_set_message(t('Erreur Mise à jour'));
+  }
+  }
+  else {
+    drupal_set_message(t('Problème sur le token d authentification'));
+  
+  }
+  }
+
+  else
+  {
+    drupal_set_message(t('Le token est null'));
+  }
+  }
+  //Gestion d'erreur
+  catch(SoapFault $fault)
+  {
+    drupal_set_message(t('Erreur'));
+  }    
 }
 
   
