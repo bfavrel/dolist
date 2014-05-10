@@ -23,13 +23,13 @@ $actions = array (
       'replacement' => array(
         'type' => 'text',
         'label' => t('Replacement'),
-        'description' => t('The field Dolist to be replaced'),
+        'description' => t('The replacement for the selected field'),
         'allow_null'=> FALSE,
       ),
       'field' => array(
         'type' => 'text',
         'label' => t('Select the field to update'),
-        'description' => t('The replacement for the selected field'),
+        'description' => t('The field Dolist to ne replaced'),
         'options list' => 'rules_fields_dolist_options_list',
       ),
     ),
