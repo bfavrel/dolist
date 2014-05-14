@@ -15,7 +15,7 @@ function dolist_menu(){
     'title' => 'Config exemple',
     'description' => 'Exemple de configuration ',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('dolist_admin_form'),
+    'page arguments' => array('dolist_global_settings_form'),
     'access arguments' => array('administer site configuration'),
     'file' => 'dolist.admin.inc',
     'type' => MENU_NORMAL_ITEM,
@@ -30,9 +30,7 @@ function dolist_token_info() {
 			'name' => t('Dolist group for tokens'),
 			'description' => t('Custom Group'),
 	);
-	
-	ini_set("soap.wsdl_cache_enabled", "0");
-	ini_set("default_socket_timeout", 480);  
+
 	
 	// Url du contrat wsdl
 	$proxywsdl = "http://api.dolist.net/V2/AuthenticationService.svc?wsdl";
@@ -64,8 +62,6 @@ function dolist_token_info() {
 				'AccountID' => variable_get('dolist_id'),
 				'Key' => $result->GetAuthenticationTokenResult->Key
 			);
-			//La list des champs d'un contact à retourner.
-			$fields[] = array('firstname', 'lastname');
 			//Les critères de recherche des contacts
 			$contactFilter = array(
 				'Email' => variable_get('dolist_email'));
@@ -100,7 +96,7 @@ function dolist_token_info() {
             		array('@f' => field_get_items('entityform', 'inscriptionsansparams', 'field_email'))));*/
   					$info['tokens']['dolist'][$valeur->Name] = array(
 					'name' => t($valeur->Name),
-					'description' => t('Champs contacts Dolist'),
+					'description' => t("Champ !champ d'une fiche contact Dolist", array('!champ' => $valeur->CustomName)),
 				);
   					
   				}
@@ -109,7 +105,7 @@ function dolist_token_info() {
 			}
 			else
 			{
-				echo "Aucun contact n'a été trouvé";
+				watchdog('dolist','Aucun contact ne peut être trouvé');
 			}			
 			
 			
@@ -123,7 +119,7 @@ function dolist_token_info() {
 	}
 	else 
 	{
-		echo "Le token d'authentification est null.";
+			watchdog('dolist','Le token authentification est null.');
 	}
 	
 	return $info;

@@ -2,7 +2,12 @@ name = Dolist
 description = Dolist Module
 core = 7.x    
 package = Dolist
+
+files[] = lib/DolistAPI.class.php
+
 dependencies[] = token
 dependencies[] = token_filter
 dependencies[] = token_insert
+
+
 configure = admin/config/dolist
