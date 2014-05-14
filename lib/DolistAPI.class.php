@@ -1,5 +1,5 @@
 <?php
-
+//Définition des fonctions qui seront utilisées à plusieurs reprises dans le module
 class DolistAPI{
 //Url du contrat wsdl Authentifictation
 var $proxywsdl="http://api.dolist.net/V2/AuthenticationService.svc?wsdl";
@@ -11,7 +11,7 @@ var $proxywsdlContact = "http://api.dolist.net/V2/ContactManagementService.svc?w
 //Url soap Authentification Management
 var $locationContact = "http://api.dolist.net/V2/ContactManagementService.svc/soap1.1";
       
-//La clé API
+//La clé API 
 var $apikey;
 //L'identifiant du compte
 var $account;
@@ -41,8 +41,6 @@ function DolistCreation($email){
  
 
   /** ON CREE UN CONTACT **/
- 
- 
   // Génération du proxy
   $clientContact = new SoapClient($this->proxywsdlContact, array('trace' => 1, 'location' => $this->locationContact));
  
@@ -51,7 +49,8 @@ function DolistCreation($email){
   'AccountID' => $this->account,
   'Key' => $result->GetAuthenticationTokenResult->Key
   );
- 
+  // Dans la fonction de création, on ne crée un contact qu'avec l'email , champ obligatoire. 
+  //Tous les autres champs sont vides.
   $fields[] = array(
   'Name' => null,
   'Value' => null);
@@ -83,30 +82,30 @@ function DolistCreation($email){
   'token'=> $token,
   'ticket'=> $ticket
   );
-  //r ecuperation de rsultat de l'opération (peut ne pas être disponible de suite)
+  //récuperation de résultat de l'opération (peut ne pas être disponible de suite)
   $resultContact = $clientContact->GetStatusByTicket($contactRequest);
   var_dump($resultContact->GetStatusByTicketResult);
   }
   else
   {
-    drupal_set_message(t('Erreur Mise à jour'));
+    watchdog('apicreation','erreur update');
   } 
 }
   else {
-    drupal_set_message(t('Problème sur le token d authentification'));
+    watchdog('apicreation','erreur token authentification');
   
   }
 }
 
   else
   {
-    drupal_set_message(t('Le token est null'));
+    watchdog('apicreation','le token est null');
   }
 }
   //Gestion d'erreur
   catch(SoapFault $fault)
   {
-    drupal_set_message(t('Erreur'));
+    watchdog('apicreation','Erreur Soap');
   }
 }
 
@@ -221,7 +220,7 @@ function DolistListFields() {
       );
       //Les critères de recherche des contacts
       $contactFilter = array(
-        'Email' => variable_get('dolist_email'));
+        'Email' => variable_get('email'));
               
     
       $contactRequest = array(

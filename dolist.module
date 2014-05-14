@@ -1,16 +1,6 @@
 <?php
-/**
- * @file
- * (config_exemple.module) Module présentant des exemples de configuration.
- */
-
- /**
- * @file
- * (config_exemple.module) Module présentant des exemples de configuration.
- */
-
+//hook_menu
 function dolist_menu(){
-
   $items['admin/config/dolist'] = array(
     'title' => 'Config exemple',
     'description' => 'Exemple de configuration ',
@@ -25,13 +15,14 @@ function dolist_menu(){
 
 }
 
+//hook_token_info 
+//Création des tokens des champs Dolist
 function dolist_token_info() {
 	$info['types']['dolist'] = array( // define main group
 			'name' => t('Dolist group for tokens'),
 			'description' => t('Custom Group'),
 	);
 
-	
 	// Url du contrat wsdl
 	$proxywsdl = "http://api.dolist.net/V2/AuthenticationService.svc?wsdl";
 	$location = "http://api.dolist.net/V2/AuthenticationService.svc/soap1.1";
@@ -40,7 +31,7 @@ function dolist_token_info() {
 	$client = new SoapClient($proxywsdl, array('trace' => 1, 'location' => $location));            
 
 	// Renseigner la clé d'authentification avec l'identifiant client
-	$authenticationInfos	= array('AuthenticationKey' => variable_get('dolist_api'),'AccountID' => variable_get('dolist_id'));
+	$authenticationInfos	= array('AuthenticationKey' => variable_get('Api'),'AccountID' => variable_get('ID'));
 	$authenticationRequest	= array('authenticationRequest' => $authenticationInfos);
 
 	// Demande du jeton d'authentification
@@ -59,12 +50,12 @@ function dolist_token_info() {
 			$clientContact = new SoapClient($proxywsdlContact, array('trace' => 1, 'location' => $locationContact));
 			// Création du jeton
 			$token = array(
-				'AccountID' => variable_get('dolist_id'),
+				'AccountID' => variable_get('ID'),
 				'Key' => $result->GetAuthenticationTokenResult->Key
 			);
 			//Les critères de recherche des contacts
 			$contactFilter = array(
-				'Email' => variable_get('dolist_email'));
+				'Email' => variable_get('email'));
 							
 		
 			$contactRequest = array(
@@ -125,6 +116,7 @@ function dolist_token_info() {
 	return $info;
 }
 
+//hook_tokens
 function dolist_tokens($type, $tokens, array $data = array(), array $options = array()) {
 	$replacements = array();
 	$sanitize = !empty($options['sanitize']);
