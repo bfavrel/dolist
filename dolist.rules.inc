@@ -33,6 +33,14 @@ $actions = array (
         'description' => t('The field Dolist to ne replaced'),
         'options list' => 'rules_fields_dolist_options_list',
       ),
+      'abomail' => array(
+        'type' => 'text',
+        'label' => t('Abonnement mail'),
+      ),
+      'abosms' => array(
+        'type' => 'text',
+        'label' => t('Abonnement sms'),
+      ),
     ),
   ),
 );
@@ -54,9 +62,9 @@ return variable_get('list_fields');
 //Modification d'un contact existant
 //On modifie un champ d'un contact de la base de données Dolist.
 //On ne peut modifier un champ que si celui ci est actif dans la base Dolist
-function dolist_update($email,$field,$replacement){
+function dolist_update($email,$field,$replacement,$abomail,$abosms){
 $api=new DolistAPI(variable_get('Api'),variable_get('ID'));
-$result=$api->dolistUpdate($email,$field,$replacement);
+$result=$api->dolistUpdate($email,$field,$replacement,$abomail,$abosms);
 }
 
   

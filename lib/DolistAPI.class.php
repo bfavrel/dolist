@@ -17,6 +17,7 @@ var $apikey;
 var $account;
 var $email;
 
+
 function DolistAPI($apikey,$account){
 $this->apikey=$apikey;
 $this->account=$account;
@@ -109,7 +110,7 @@ function DolistCreation($email){
   }
 }
 
-function DolistUpdate($email,$field,$replacement){
+function DolistUpdate($email,$field,$replacement,$abomail,$abosms){
  try
   {
   // Génération du proxy
@@ -141,14 +142,25 @@ function DolistUpdate($email,$field,$replacement){
  
   $interests[] = array();
   $e=trim($email);
-  
+  // Abonne ou désabonne le contact suivant la valeur de la variable
+  if($abomail == 'oui')
+    $abomail = '0';
+  else if ($abomail == 'non') {
+    $abomail = '1';
+  }  
+
+  if($abosms == 'oui')
+    $abosms = '0';
+  else if ($abosms == 'non') {
+    $abosms = '1';
+  }
   $contact = array(
   'Email' => $email,
   'Fields' => $fields,
   'InterestsToAdd' => $interests, //la liste des identifiants des interets déclarés à associer au contact
   'InterestsToDelete' => $interests, //la liste des identifiants des interets déclarés à supprimer sur le contact
-  'OptoutEmail' => 0, //0: inscription, 1:désinscription
-  'OptoutMobile'=> 0 //0: inscription, 1:désinscription
+  'OptoutEmail' => $abomail, //0: inscription, 1:désinscription
+  'OptoutMobile'=> $abosms //0: inscription, 1:désinscription
   );
  
   $contactRequest = array(
@@ -272,6 +284,103 @@ function DolistListFields() {
   return $array;
 }
 
+// Abonner ou désabonner un contact. 
+// $abomail pour abonnement mail, et $abosms pour abonnement sms
+function DolistAboDesabo ($email,$abomail,$abosms){
+try
+  {
+  // Génération du proxy
+  $client = new SoapClient($this->proxywsdl, array('trace' => 1, 'location' => $this->location));
+ 
+  // Renseigner la clé d'authentification avec l'identifiant client
+  $authenticationInfos = array('AuthenticationKey' => $this->apikey,'AccountID' => $this->account);
+  $authenticationRequest = array('authenticationRequest' => $authenticationInfos);
+ 
+  // Demande du jeton d'authentification
+  $result = $client->GetAuthenticationToken($authenticationRequest);
+ 
+  if (!is_null($result->GetAuthenticationTokenResult) and $result->GetAuthenticationTokenResult != '') {
+  if ($result->GetAuthenticationTokenResult->Key != '') {
+  /** Si le token existe on affiche ses informations **/
+  /** ON CREE UN CONTACT **/
+  // Génération du proxy
+  $clientContact = new SoapClient($this->proxywsdlContact, array('trace' => 1, 'location' => $this->locationContact));
+ 
+  // Création du jeton
+  $token = array(
+  'AccountID' => $this->account,
+  'Key' => $result->GetAuthenticationTokenResult->Key
+  );
+ 
+  $fields[] = array(
+  'Name' =>  '',
+  'Value' => '');
+ 
+  $interests[] = array();
+  $e=trim($email);
+  // Abonne ou désabonne le contact suivant la valeur de la variable
+  if($abomail == 'oui')
+    $abomail = '0';
+  else if ($abomail == 'non') {
+    $abomail = '1';
+  }  
 
+  if($abosms == 'oui')
+    $abosms = '0';
+  else if ($abosms == 'non') {
+    $abosms = '1';
+  }
+  $contact = array(
+  'Email' => $email,
+  'Fields' => $fields,
+  'InterestsToAdd' => $interests, //la liste des identifiants des interets déclarés à associer au contact
+  'InterestsToDelete' => $interests, //la liste des identifiants des interets déclarés à supprimer sur le contact
+  'OptoutEmail' => $abomail, //0: inscription, 1:désinscription
+  'OptoutMobile'=> $abosms //0: inscription, 1:désinscription
+  );
+ 
+  $contactRequest = array(
+  'token'=> $token,
+  'contact'=> $contact
+  );
+ 
+  // Enregistrement du contact
+  $result = $clientContact->SaveContact($contactRequest);
+ 
+  if (!is_null($result->SaveContactResult) and $result->SaveContactResult != '')
+  {
+  $ticket = $result->SaveContactResult;
+ 
+  $contactRequest = array(
+  'token'=> $token,
+  'ticket'=> $ticket
+  );
+ 
+  //r ecuperation de rsultat de l'opération (peut ne pas être disponible de suite)
+  $resultContact = $clientContact->GetStatusByTicket($contactRequest);
+  var_dump($resultContact->GetStatusByTicketResult);
+  }
+  else
+  {
+    watchdog('dolist_maj','Erreur update');
+  }
+  }
+  else {
+    watchdog('dolist_maj','Problème sur le token authentification'); 
+  
+  }
+  }
+  else
+  {
+    watchdog('dolist_maj','Le token est null'); 
+    }
+  }
+  //Gestion d'erreur
+  catch(SoapFault $fault)
+  {
+    watchdog('dolist_maj','Erreur');
+  }    
+
+}
 
 }?>
