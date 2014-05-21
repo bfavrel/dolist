@@ -44,8 +44,8 @@ function generate_dolist_fields ($form,&$form_state)
 variable_set('Api',$form_state['values']['Api']);
 variable_set('ID',$form_state['values']['ID']);
 variable_set('email',$form_state['values']['email']);
-$api=new DolistAPI(variable_get('Api'),variable_get('ID'));
-variable_set('list_fields',$api->dolistListFields());
+$api=new dolistAPI(variable_get('Api'),variable_get('ID'));
+variable_set('list_fields',$api->createListContactFields());
 drupal_set_message(t('La liste des champs modifiables à été créée.'));
 }
 

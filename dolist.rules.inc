@@ -50,8 +50,8 @@ return $actions;
 // Création d'un contact Dolist
 // Pour que le contact soit créé, l'email doit être unique
 function dolist_creation($email){
-$api=new DolistAPI(variable_get('dolist_Api'),variable_get('ID'));
-$result=$api->dolistcreation($email);
+$api=new dolistAPI(variable_get('Api'),variable_get('ID'));
+$result=$api->createContact($email);
 } 
 
 // On créé la liste des champs actifs modifiables dans l'action de mise à jour d'un contact
@@ -63,8 +63,9 @@ return variable_get('list_fields');
 //On modifie un champ d'un contact de la base de données Dolist.
 //On ne peut modifier un champ que si celui ci est actif dans la base Dolist
 function dolist_update($email,$field,$replacement,$abomail,$abosms){
-$api=new DolistAPI(variable_get('Api'),variable_get('ID'));
-$result=$api->dolistUpdate($email,$field,$replacement,$abomail,$abosms);
+$api=new dolistAPI(variable_get('Api'),variable_get('ID'));
+$result=$api->updateContact($email,$field,$replacement);
+
 }
 
   
