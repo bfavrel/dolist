@@ -970,6 +970,112 @@ catch(SoapFault $fault) {
   
 }
 }
+ function pauseCampaignMail($id){
+try{
+  $result_auth=$this->authenticationSegment();
+
+  if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+      $client=$this->soapCampaignService();
+      $token=$this->jetonCampaignService();
+
+      // Création de la requête
+      $pauseRequest = array(
+        'token' => $token,
+        'campaignId' => $id
+      );
+      
+$result = $client->PauseCampaign($pauseRequest);
+      if (!is_null($result) and $result != '')
+      {
+        watchdog('pause_campaign','La campagne a été mise en pause');
+      }
+      else{
+        watchdog('pause_campaign','La campagne n a pas pu être mise en pause');
+    
+  }
+  }
+}
+}
+catch(SoapFault $fault){
+$detail = $fault->detail;
+  watchdog('pause_campaign','Erreur Soap');
+  watchdog('pause_campaign','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('pause_campaign','Description : @message',array('@message' => $detail->ServiceException->Description));
+}
+}
+function cancelCampaignMail($id){
+try{
+  $result_auth=$this->authenticationSegment();
+
+  if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+      $client=$this->soapCampaignService();
+      $token=$this->jetonCampaignService();
+
+      // Création de la requête
+      $cancelRequest = array(
+        'token' => $token,
+        'campaignId' => $id
+      );
+      
+$result = $client->CancelCampaign($cancelRequest);
+      if (!is_null($result) and $result != '')
+      {
+        watchdog('cancel_campaign','La campagne a été arrétée');
+      }
+      else{
+        watchdog('cancel_campaign','La campagne n a pas pu être arrêtée');
+    
+  }
+  }
+}
+}
+catch(SoapFault $fault){
+$detail = $fault->detail;
+  watchdog('cancel_campaign','Erreur Soap');
+  watchdog('cancel_campaign','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('cancel_campaign','Description : @message',array('@message' => $detail->ServiceException->Description));
+}
+ }
+
+function resumeCampaignMail($id){
+try{
+  $result_auth=$this->authenticationSegment();
+
+  if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+      $client=$this->soapCampaignService();
+      $token=$this->jetonCampaignService();
+
+      // Création de la requête
+      $resumeRequest = array(
+        'token' => $token,
+        'campaignId' => $id,
+        'planning' => array(
+          'SendDate' => mktime(23, 59, 0, 12, 24, 2017)
+          )
+      );
+      
+$result = $client->ResumeCampaign($resumeRequest);
+      if (!is_null($result) and $result != '')
+      {
+        watchdog('resume_campaign','La campagne a bien été redémarrée');
+      }
+      else{
+        watchdog('resume_campaign','La campagne n a pas pu être redemarrée');
+    
+  }
+  }
+}
+}
+catch(SoapFault $fault){
+$detail = $fault->detail;
+  watchdog('resume_campaign','Erreur Soap');
+  watchdog('resume_campaign','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('resume_campaign','Description : @message',array('@message' => $detail->ServiceException->Description));
+}
+}
 
 function getAllCampaignsMail(){
 try{
@@ -985,8 +1091,8 @@ try{
         'request' => array(
           'filter' => array(
               'AllCampaigns' => true,
-              'Date' => '',
-              'LastCampaigns' => '',
+              'Date' => null,
+              'LastCampaigns' => null,
               'Offset' => 0
               ),
           )
@@ -995,58 +1101,22 @@ try{
       $result = $client->GetCampaigns($getCampaignsRequest);
       if (!is_null($result->GetCampaignsResult) and $result->GetCampaignsResult != '')
       {
-        watchdog('get_all_campaigns_mail','ça marche');
-      }
+        $campaigns = $result->GetCampaignsResult->CampaignDetailsList;
+       }
       else {
-        watchdog('get_all_campaigns_mail','ça marche pas');
+        watchdog('get_all_campaigns_mail','les campagnes n ont pas pu être récupérées');
       }
 }
 }
 }
 
 catch(SoapFault $fault){
-  
+  $detail = $fault->detail;
+  watchdog('pause_campaign','Erreur Soap');
+  watchdog('pause_campaign','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('pause_campaign','Description : @message',array('@message' => $detail->ServiceException->Description));
 }
 }
- function pauseCampaign(){
-try{
-  $result_auth=$this->authenticationSegment();
-
-  if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
-    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
-      $client=$this->soapCampaignService();
-      $token=$this->jetonCampaignService();
-
-      // Création de la requête
-      $pauseRequest = array(
-        'token' => $token,
-        'campaignId' => '4215467'
-      );
-      
-$result = $client->PauseCampaign($pauseRequest);
-drupal_set_message(t('Test rules with parameter with @username',
-  array('@username' => $token)));
-      if (!is_null($result) and $result != '')
-      {
-        watchdog('pause_campaign','pause_campaign');
-      }
-      else{
-        watchdog('pause_campaign','pas pause_campaign');
-    
-  }
-  }
-}
-}
-catch(SoapFault $fault){
-
-}
- }
-
-
-
-
-
-
 
 
 }?>
