@@ -25,9 +25,12 @@ private $locationContact = "http://api.dolist.net/V2/ContactManagementService.sv
 //Contrat Segment Service
 private $proxywsdlSeg = "http://api.dolist.net/V2/SegmentService.svc?wsdl";
 private $locationSeg = "http://api.dolist.net/V2/SegmentService.svc/soap1.1";    
-
-
-
+//Contrat Messages Service
+private $proxywsdlMessage = "http://api.dolist.net/V2/MessageService.svc?wsdl";
+private $locationMessage = "http://api.dolist.net/V2/MessageService.svc/soap1.1";
+//Contrat Campagne Service
+private $proxywsdlCampaign = "http://api.dolist.net/V2/CampaignManagementService.svc?wsdl";
+private $locationCampaign = "http://api.dolist.net/V2/CampaignManagementService.svc/soap1.1";
 /**
  * \brief      Définit un nouvel objet API
  * \details    Définit les paramètres obligatoire pour toute manipulation de l'API Dolist.
@@ -69,6 +72,7 @@ private function jetonContactService(){
   return $token; 
 }
 
+
 // ON définit le client Soap et le jeton d'authentification pour la partie segment de l'Api
 private function authenticationSegment(){
  // Génération du proxy
@@ -102,6 +106,41 @@ private function jetonSegmentService(){
     return $token;
 }
 
+// On définit le client Soap pour les fonctions sur les messages
+private function soapMessageService(){
+  // Génération du proxy
+      $client = new SoapClient($this->proxywsdlMessage, array('trace' => 1, 'location' => $this->locationMessage));
+      return $client;  
+}
+
+//On définit le jeton d'authentification pour manipuler les fonctions sur les messages
+private function jetonMessageService(){
+  $result_auth=$this->authenticationSegment();
+  // Création du jeton
+    $token = array(
+        'AccountID' => $this->account,
+        'Key' => $result_auth->GetAuthenticationTokenResult->Key
+      );
+      return $token;
+}
+
+// On définit le client Soap pour les fonctions sur les campagnes
+private function soapCampaignService(){
+     // Génération du proxy
+      $client = new SoapClient($this->proxywsdlCampaign, array('trace' => 1, 'location' => $this->locationCampaign));
+      return $client;
+}
+
+//On définit le jeton d'authentification pour manipuler les fonctions sur les campagnes
+private function jetonCampaignService(){
+  $result_auth=$this->authenticationSegment();
+  // Création du jeton
+      $token = array(
+        'AccountID' => $this->account,
+        'Key' => $result_auth->GetAuthenticationTokenResult->Key
+      );
+      return $token;
+}
 /**
  * \brief      Fonction de Création d'un contact Dolist
  * \details    On créé un nouveau contact que l'on ajoute à sa base de contacts Dolist
@@ -116,10 +155,7 @@ function createContact($email){
   //Si le token existe on affiche ses informations 
     $clientContact=$this->soapClientContactService();
     $token=$this->jetonContactService();
-    
-
  //ON CREE UN CONTACT 
-  
   // Dans la fonction de création, on ne crée un contact qu'avec l'email , champ obligatoire. 
   //Tous les autres champs sont vides.
   $fields[] = array(
@@ -166,16 +202,14 @@ function createContact($email){
   
   }
 }
-
   else
   {
     watchdog('creation_contact','le token est null');
   }
 }
-  //Gestion d'erreur
+ //Gestion d'erreur
   catch(SoapFault $fault)
   {
-
   $detail = $fault->detail;
   watchdog('creation_contact','Erreur Soap');
   watchdog('creation_contact','Message : @message',array('@message' => $detail->ServiceException->Message));
@@ -199,22 +233,19 @@ function updateContact($email,$field,$replacement){
   /** Si le token existe on affiche ses informations **/
   $clientContact=$this->soapClientContactService();
   $token=$this->jetonContactService(); 
-  $fields[] = array(
   
+  $fields[] = array(
   'Name' => $replacement,
   'Value' => $field);
  
   $interests[] = array();
-  $e=trim($email);
-  // Abonne ou désabonne le contact suivant la valeur de la variable
-  }
   $contact = array(
   'Email' => $email,
   'Fields' => $fields,
   'InterestsToAdd' => $interests, //la liste des identifiants des interets déclarés à associer au contact
-  'InterestsToDelete' => $interests, //la liste des identifiants des interets déclarés à supprimer sur le contact
-  'OptoutEmail' => 0, //0: inscription, 1:désinscription
-  'OptoutMobile'=> 0 //0: inscription, 1:désinscription
+  'InterestsToDelete' => $interests //la liste des identifiants des interets déclarés à supprimer sur le contact
+  //'OptoutEmail' => 0, //0: inscription, 1:désinscription
+  //'OptoutMobile'=> 0 //0: inscription, 1:désinscription
   );
  
   $contactRequest = array(
@@ -224,7 +255,6 @@ function updateContact($email,$field,$replacement){
  
   // Enregistrement du contact
   $result = $clientContact->SaveContact($contactRequest);
- 
   if (!is_null($result->SaveContactResult) and $result->SaveContactResult != '')
   {
   $ticket = $result->SaveContactResult;
@@ -273,16 +303,11 @@ function createListContactFields() {
   $result=$this->authenticationService();
   if (!is_null($result->GetAuthenticationTokenResult) and $result->GetAuthenticationTokenResult != '') {
     if ($result->GetAuthenticationTokenResult->Key != '') {
-      /******************************************/
-      /* LECTURE  DES CONTACTS */
-      /******************************************/
       //Les critères de recherche des contacts
       $contactFilter = array(
         'Email' => variable_get('email'));
-              
-    
+      
       $contactRequest = array(
-        
         'Offset' => 0, //Optionnel: L'indice du 1er contact retourné. 
         'AllFields' => true, //Indique si on doit retourner tous les champs
         'Interest' => true, //Indique si les interets déclarés sont retourné par la requete
@@ -296,28 +321,19 @@ function createListContactFields() {
       
       // Récupération de tous les contacts
       $result = $clientContact->GetContact($request);
-
       if (!is_null($result->GetContactResult) and $result->GetContactResult != '')
       {
-        $contacts = $result->GetContactResult->ContactList->ContactData->CustomFields->CustomField;
-          
-   // ICI ON AFFICHE LES CHAMPS DE LA FICHE CONTACT (MEME LES CHAMPS NON REMPLIS) SEULEMENT SI LE 
+        $contacts = $result->GetContactResult->ContactList->ContactData->CustomFields->CustomField;     
           $array=array();
           foreach($contacts as $valeur)
           {
          $array[$valeur->Name]=$valeur->Name; 
           }
-      
       }
       else
       {
         watchdog('list_contact_fields','Aucun contact trouvé');
       }     
-      
-      
-      /******************************************/
-      
-      
   }
     else {
     
@@ -331,13 +347,11 @@ function createListContactFields() {
 }
 
 /**
- * \brief      Abonnement / Desabonnement d'un contact
- * \details    Cette fonction permet l'abonnement (ou le désabonnement) d'un contact à la réception d'emails ou de sms (ou les deux)
+ * \brief      Abonnement d'un contact à la réception d'emails
+ * \details    Cette fonction permet l'abonnement d'un contact à la réception d'emails 
  * \param    email           L'adresse email du contact à modifier
- * \param    abomail         Précise si le contact doit être abonné ou pas aux emails (0 : abonnement, 1 : désabonnement)
- * \param    abosms          Précise si le contact doit être abonné ou pas aux sms (0 : abonnement, 1 : désabonnement)
  */
-function suscribeContact ($email,$abomail,$abosms){
+function suscribeContactbyMail ($email){
 try
   {
   $result=$this->authenticationService();
@@ -352,26 +366,159 @@ try
   'Value' => '');
  
   $interests[] = array();
-  $e=trim($email);
-  // Abonne ou désabonne le contact suivant la valeur de la variable
-  if($abomail == 'oui')
-    $abomail = '0';
-  else if ($abomail == 'non') {
-    $abomail = '1';
-  }  
-
-  if($abosms == 'oui')
-    $abosms = '0';
-  else if ($abosms == 'non') {
-    $abosms = '1';
-  }
   $contact = array(
   'Email' => $email,
   'Fields' => $fields,
   'InterestsToAdd' => $interests, //la liste des identifiants des interets déclarés à associer au contact
   'InterestsToDelete' => $interests, //la liste des identifiants des interets déclarés à supprimer sur le contact
-  'OptoutEmail' => $abomail, //0: inscription, 1:désinscription
-  'OptoutMobile'=> $abosms //0: inscription, 1:désinscription
+  'OptoutEmail' => 0 //0: inscription, 1:désinscription
+  );
+ 
+  $contactRequest = array(
+  'token'=> $token,
+  'contact'=> $contact
+  );
+  // Enregistrement du contact
+  $result = $clientContact->SaveContact($contactRequest);
+  if (!is_null($result->SaveContactResult) and $result->SaveContactResult != '')
+  {
+  $ticket = $result->SaveContactResult;
+ 
+  $contactRequest = array(
+  'token'=> $token,
+  'ticket'=> $ticket
+  );
+ 
+  //r ecuperation de rsultat de l'opération (peut ne pas être disponible de suite)
+  $resultContact = $clientContact->GetStatusByTicket($contactRequest);
+  var_dump($resultContact->GetStatusByTicketResult);
+  }
+  else
+  {
+    watchdog('suscribe_contact','Erreur update');
+  }
+  }
+  else {
+    watchdog('suscribe_contact','Problème sur le token authentification'); 
+  
+  }
+  }
+  else
+  {
+    watchdog('suscribe_contact','Le token est null'); 
+    }
+  }
+  //Gestion d'erreur
+  catch(SoapFault $fault)
+  {
+    $detail = $fault->detail;
+  watchdog('suscribe_contact','Erreur Soap');
+  watchdog('suscribe_contact','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('suscribe_contact','Description : @message',array('@message' => $detail->ServiceException->Description));
+  }    
+
+}
+
+/**
+ * \brief      Désabonnement d'un contact à la réception d'emails
+ * \details    Cette fonction permet de désabonner un contact à la réception d'emails 
+ * \param    email           L'adresse email du contact à modifier
+ */
+function unsuscribeContactbyMail ($email){
+try
+  {
+  $result=$this->authenticationService();
+    if (!is_null($result->GetAuthenticationTokenResult) and $result->GetAuthenticationTokenResult != '') {
+  if ($result->GetAuthenticationTokenResult->Key != '') {
+  /** Si le token existe on affiche ses informations **/
+ $clientContact=$this->soapClientContactService();
+ $token=$this->jetonContactService();
+ 
+  $fields[] = array(
+  'Name' =>  '',
+  'Value' => '');
+ 
+  $interests[] = array();
+  $contact = array(
+  'Email' => $email,
+  'Fields' => $fields,
+  'InterestsToAdd' => $interests, //la liste des identifiants des interets déclarés à associer au contact
+  'InterestsToDelete' => $interests, //la liste des identifiants des interets déclarés à supprimer sur le contact
+  'OptoutEmail' => 1 //0: inscription, 1:désinscription
+  );
+ 
+  $contactRequest = array(
+  'token'=> $token,
+  'contact'=> $contact
+  );
+ 
+  // Enregistrement du contact
+  $result = $clientContact->SaveContact($contactRequest);
+  if (!is_null($result->SaveContactResult) and $result->SaveContactResult != '')
+  {
+  $ticket = $result->SaveContactResult;
+ 
+  $contactRequest = array(
+  'token'=> $token,
+  'ticket'=> $ticket
+  );
+ 
+  //r ecuperation de rsultat de l'opération (peut ne pas être disponible de suite)
+  $resultContact = $clientContact->GetStatusByTicket($contactRequest);
+  var_dump($resultContact->GetStatusByTicketResult);
+  }
+  else
+  {
+    watchdog('suscribe_contact','Erreur update');
+  }
+  }
+  else {
+    watchdog('suscribe_contact','Problème sur le token authentification'); 
+  
+  }
+  }
+  else
+  {
+    watchdog('suscribe_contact','Le token est null'); 
+    }
+  }
+  //Gestion d'erreur
+  catch(SoapFault $fault)
+  {
+    $detail = $fault->detail;
+  watchdog('suscribe_contact','Erreur Soap');
+  watchdog('suscribe_contact','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('suscribe_contact','Description : @message',array('@message' => $detail->ServiceException->Description));
+  }    
+
+}
+
+/**
+ * \brief      Abonnement d'un contact à la réception de sms
+ * \details    Cette fonction permet l'abonnement d'un contact à la réception de sms
+ * \param    email           L'adresse email du contact à modifier
+ */
+function suscribeContactbySms ($email){
+try
+  {
+  $result=$this->authenticationService();
+    if (!is_null($result->GetAuthenticationTokenResult) and $result->GetAuthenticationTokenResult != '') {
+  if ($result->GetAuthenticationTokenResult->Key != '') {
+  /** Si le token existe on affiche ses informations **/
+ $clientContact=$this->soapClientContactService();
+ $token=$this->jetonContactService();
+ 
+  $fields[] = array(
+  'Name' =>  '',
+  'Value' => '');
+ 
+  $interests[] = array();
+  $contact = array(
+  'Email' => $email,
+  'Fields' => $fields,
+  'InterestsToAdd' => $interests, //la liste des identifiants des interets déclarés à associer au contact
+  'InterestsToDelete' => $interests, //la liste des identifiants des interets déclarés à supprimer sur le contact
+  'OptoutMobile' => 0 //0: inscription, 1:désinscription
   );
  
   $contactRequest = array(
@@ -421,6 +568,80 @@ try
 
 }
 
+/**
+ * \brief      Désabonnement d'un contact à la réception de sms
+ * \details    Cette fonction permet le désabonnement d'un contact à la réception de sms 
+ * \param    email           L'adresse email du contact à modifier
+ */
+function unsuscribeContactbySms ($email){
+try
+  {
+  $result=$this->authenticationService();
+    if (!is_null($result->GetAuthenticationTokenResult) and $result->GetAuthenticationTokenResult != '') {
+  if ($result->GetAuthenticationTokenResult->Key != '') {
+  /** Si le token existe on affiche ses informations **/
+ $clientContact=$this->soapClientContactService();
+ $token=$this->jetonContactService();
+ 
+  $fields[] = array(
+  'Name' =>  '',
+  'Value' => '');
+ 
+  $interests[] = array();
+  $contact = array(
+  'Email' => $email,
+  'Fields' => $fields,
+  'InterestsToAdd' => $interests, //la liste des identifiants des interets déclarés à associer au contact
+  'InterestsToDelete' => $interests, //la liste des identifiants des interets déclarés à supprimer sur le contact
+  'OptoutMobile' => 1 //0: inscription, 1:désinscription
+  );
+ 
+  $contactRequest = array(
+  'token'=> $token,
+  'contact'=> $contact
+  );
+ 
+  // Enregistrement du contact
+  $result = $clientContact->SaveContact($contactRequest);
+ 
+  if (!is_null($result->SaveContactResult) and $result->SaveContactResult != '')
+  {
+  $ticket = $result->SaveContactResult;
+ 
+  $contactRequest = array(
+  'token'=> $token,
+  'ticket'=> $ticket
+  );
+ 
+  //r ecuperation de rsultat de l'opération (peut ne pas être disponible de suite)
+  $resultContact = $clientContact->GetStatusByTicket($contactRequest);
+  var_dump($resultContact->GetStatusByTicketResult);
+  }
+  else
+  {
+    watchdog('suscribe_contact','Erreur update');
+  }
+  }
+  else {
+    watchdog('suscribe_contact','Problème sur le token authentification'); 
+  
+  }
+  }
+  else
+  {
+    watchdog('suscribe_contact','Le token est null'); 
+    }
+  }
+  //Gestion d'erreur
+  catch(SoapFault $fault)
+  {
+    $detail = $fault->detail;
+  watchdog('suscribe_contact','Erreur Soap');
+  watchdog('suscribe_contact','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('suscribe_contact','Description : @message',array('@message' => $detail->ServiceException->Description));
+  }    
+
+}
 
 function createSegment(){
 //A voir plus tard
@@ -433,11 +654,8 @@ function createSegment(){
 function getAllSegments(){
 try {
   $result_auth=$this->authenticationSegment();
-  
   if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
     if ($result_auth->GetAuthenticationTokenResult->Key != '') {
-      
-     
     $client=$this->soapClientSegmentService();
     $token=$this->jetonSegmentService();
       
@@ -448,7 +666,6 @@ try {
       
       // Récupération de tous les segments
       $result = $client->GetAllSegments($getSegmentRequest);
-
       if (!is_null($result->GetAllSegmentsResult) and $result->GetAllSegmentsResult != '')
       {
         $segments = $result->GetAllSegmentsResult->Segment;
@@ -479,10 +696,7 @@ try {
 }
 //Gestion d'erreur
 catch(SoapFault $fault) {
-
   $Detail = $fault->detail;
-
-  
   $detail = $fault->detail;
   watchdog('get_all_segments','Erreur Soap');
   watchdog('get_all_segments','Message : @message',array('@message' => $detail->ServiceException->Message));
@@ -508,12 +722,10 @@ try {
       // Création de la requête
       $getSegmentRequest = array(
         'token' => $token,
-        'segmentID' => 42
-      );
-      
+        'segmentID' => $id
+      ); 
       // Récupération d'un segment
       $result = $client->GetSegmentByID($getSegmentRequest);
-
       if (!is_null($result->GetSegmentByIDResult) and $result->GetSegmentByIDResult != '')
       {
         $segment = $result->GetSegmentByIDResult;
@@ -527,9 +739,7 @@ try {
         array('@name' => $segment->Name));
         watchdog('segment_by_id','ContactsCount : @contact',
         array('@contact' => $segment->ContactsCount));
-        
-      
-      }
+        }
       else
       {
         watchdog('segment_by_id','Le segment n a pas été trouvé');
@@ -539,7 +749,6 @@ try {
 }
 //Gestion d'erreur
 catch(SoapFault $fault) {
-
   $detail = $fault->detail;
   watchdog('segment_by_id','Erreur Soap');
   watchdog('segment_by_id','Message : @message',array('@message' => $detail->ServiceException->Message));
@@ -564,12 +773,10 @@ function getSegmentbyName($name){
       // Création de la requête
       $getSegmentRequest = array(
         'token' => $token,
-        'segmentName' => 'Email de bienvenue'
+        'segmentName' => $name
       );
-      
       // Récupération d'un segment
       $result = $client->GetSegmentByName($getSegmentRequest);
-
       if (!is_null($result->GetSegmentByNameResult) and $result->GetSegmentByNameResult != '')
       {
         $segment = $result->GetSegmentByNameResult;
@@ -600,4 +807,246 @@ $detail = $fault->detail;
   watchdog('segment_by_name','Description : @message',array('@message' => $detail->ServiceException->Description));
 }
 }
+
+/**
+ * \brief      Récupération d'un Message par son ID
+ * \details    On récupère les infos d'un message en fournissant son ID
+ * \param      id        L'id du message à récupérer
+ */
+function getMessages($id)
+{
+  try {
+    $result_auth=$this->authenticationSegment();
+  if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+      $client=$this->soapMessageService();
+      $token= $this->jetonMessageService();
+      
+
+      $GetMessageRequest = array(
+        'MessageID' => $id
+      );
+      
+      // Création de la requête
+      $message = array(
+        'token' => $token,
+        'request' => $GetMessageRequest
+      );
+      
+      // Création d'une campagne
+      $result = $client->GetMessage($message);
+
+      if (!is_null($result->GetMessageResult) and $result->GetMessageResult != '')
+      {
+        $response = $result->GetMessageResult;
+        $i = 0;
+          if ($response->MessagesCount > 0) {
+          foreach($response->MessageList as $msg){
+            watchdog('messages','Erreur Soap');
+            watchdog('messages','Nom : @nom',array('@nom' => $msg->Name));
+            watchdog('messages','Html : @html',array('@html' => $msg->ContentHtml));
+            watchdog('messages','Encoding : @encoding',array('@encoding' => $msg->Encoding));
+            watchdog('messages','Type : @type',array('@type' => $msg->MessageType)); 
+
+
+          }
+        }
+        
+      }
+    }
+  }
+}
+//Gestion d'erreur
+catch(SoapFault $fault) {
+  $detail = $fault->detail;
+  watchdog('messages','Erreur Soap');
+  watchdog('messages','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('messages','Description : @message',array('@message' => $detail->ServiceException->Description));
+}
+}
+
+/**
+ * \brief      Création d'un campagne mail
+ * \details    On créé une campagne mail.la liste des paramètres sera à rajouter.
+ */
+function createCampaignMail(){
+try {
+ $result_auth=$this->authenticationSegment();
+  if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+      $client=$this->soapCampaignService();
+      $token=$this->jetonCampaignService();
+      
+      // Création d'une campagne
+      $campaignEmail = array(
+        'FromAddressPrefix' => 'florian', //ex: cecile@mondomaine.com
+        'FromName' => 'saisondor-dev',
+        'ReplyAddress' => 'benoit@saisondor.com',
+        'ReplyName' => 'saisondor-dev',
+        'Subject' => 'e-mail de bienvenue ',
+        'Message' => array(
+          'Id' => 0,  //0 car nouveau message, sinon identifiant du message (dans ce cas inutile de renseigner les autres champs du message : Name, ContentHtml, ContentText, Encoding et MessageType)
+          'Name' => 'Mon message',
+          'ContentHtml' => '<html><body><p></p>Lorem ipsum dolor sit amet, consectetur ...</body></html>',
+          'ContentText' => '',
+          // Choix possible : utf-8, iso-8859-1, iso-8859-2, iso-8859-3, iso-8859-4, iso-8859-5, iso-8859-6, iso-8859-7, iso-8859-8, iso-8859-9, iso-8859-13, iso-8859-15
+          'Encoding' => 'iso-8859-15',
+          // Choix possible : IncludeEncodedImages, IncludeImageLinks
+          'MessageType' => 'IncludeImageLinks'
+        ),
+        'TrackingDomain' => 'dev.saisondor.com',
+        'Culture' => 'fr',
+        'VersionOnline' => true,
+        'UnsubscribeFormId' => 0,
+        // Choix possible : Html, Text
+        'FormatLinkTechnical' => 'Html'
+      );
+      
+      // Création de la requête
+      $createCampaignRequest = array(
+        'token' => $token,
+        'campaignEmail' => $campaignEmail
+      );
+      // Création d'une campagne
+      $result = $client->CreateCampaign($createCampaignRequest);
+
+      if (!is_null($result->CreateCampaignResult) and $result->CreateCampaignResult != '')
+      {
+        $campaignId = $result->CreateCampaignResult;
+        watchdog('create_campaign','La demande de création a été prise en compte. Voici son ID : @id',array('@id'=>$campaignId));
+      }
+    }
+  }
+}
+//Gestion d'erreur
+catch(SoapFault $fault) {
+  $detail = $fault->detail;
+  watchdog('create_campaign','Erreur Soap');
+  watchdog('create_campaign','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('create_campaign','Description : @message',array('@message' => $detail->ServiceException->Description));
+
+}
+}
+
+function sendCampaignMail(){
+try {
+ $result_auth=$this->authenticationSegment();
+ if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+    $client=$this->soapCampaignService();
+      $token=$this->jetonCampaignService();
+      // Requête : envoie le 24 décembre 2017 à 23:59:00, à 200 messages par 5 minutes
+      $sendCampaignRequest = array(
+        'token' => $token,
+        'campaignId' => 4215467,
+        'segmentId' => 182,
+        'planning' => array(
+          'SendDate' => mktime(23, 59, 0, 12, 24, 2017)
+        ),
+        'frequency' => array(
+          'Volume' => 200,
+          'Period' => 300 // 300 secondes soit 5 minutes
+        )
+      );
+        
+      // Envoi d'une campagne de test
+      $result = $client->SendCampaign($sendCampaignRequest);
+
+      if (!is_null($result->SendCampaignResult) and $result->SendCampaignResult != '')
+      {
+        $ticket = $result->SendCampaignResult;
+        watchdog('send_campaign','La demande d envoi a été prise en compte, pour obtenir le
+          statut, voici le ticket : @ticket',array('@ticket'=> $ticket));
+      }
+    }
+  }
+}
+//Gestion d'erreur
+catch(SoapFault $fault) {
+ $detail = $fault->detail;
+  watchdog('send_campaign','Erreur Soap');
+  watchdog('send_campaign','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('send_campaign','Description : @message',array('@message' => $detail->ServiceException->Description));
+  
+}
+}
+
+function getAllCampaignsMail(){
+try{
+ $result_auth=$this->authenticationSegment();
+ if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+       $client=$this->soapCampaignService();
+      $token=$this->jetonCampaignService();
+
+      // Création de la requête
+      $getCampaignsRequest = array(
+        'token' => $token,
+        'request' => array(
+          'filter' => array(
+              'AllCampaigns' => true,
+              'Date' => '',
+              'LastCampaigns' => '',
+              'Offset' => 0
+              ),
+          )
+      );
+
+      $result = $client->GetCampaigns($getCampaignsRequest);
+      if (!is_null($result->GetCampaignsResult) and $result->GetCampaignsResult != '')
+      {
+        watchdog('get_all_campaigns_mail','ça marche');
+      }
+      else {
+        watchdog('get_all_campaigns_mail','ça marche pas');
+      }
+}
+}
+}
+
+catch(SoapFault $fault){
+  
+}
+}
+ function pauseCampaign(){
+try{
+  $result_auth=$this->authenticationSegment();
+
+  if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+      $client=$this->soapCampaignService();
+      $token=$this->jetonCampaignService();
+
+      // Création de la requête
+      $pauseRequest = array(
+        'token' => $token,
+        'campaignId' => '4215467'
+      );
+      
+$result = $client->PauseCampaign($pauseRequest);
+drupal_set_message(t('Test rules with parameter with @username',
+  array('@username' => $token)));
+      if (!is_null($result) and $result != '')
+      {
+        watchdog('pause_campaign','pause_campaign');
+      }
+      else{
+        watchdog('pause_campaign','pas pause_campaign');
+    
+  }
+  }
+}
+}
+catch(SoapFault $fault){
+
+}
+ }
+
+
+
+
+
+
+
+
 }?>
