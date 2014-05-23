@@ -64,10 +64,10 @@ return variable_get('list_fields');
 //On ne peut modifier un champ que si celui ci est actif dans la base Dolist
 function dolist_update($email,$field,$replacement,$abomail,$abosms){
 $api=new dolistAPI(variable_get('Api'),variable_get('ID'));
-//$result=$api->updateContact($email,$field,$replacement);
-$result=$api->cancelCampaignMail();
+$result=$api->updateContact($email,$field,$replacement);
+//$result=$api->getAllCampaignsMail();
 }
 
-  
+
  
 ?>

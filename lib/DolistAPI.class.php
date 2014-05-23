@@ -31,6 +31,15 @@ private $locationMessage = "http://api.dolist.net/V2/MessageService.svc/soap1.1"
 //Contrat Campagne Service
 private $proxywsdlCampaign = "http://api.dolist.net/V2/CampaignManagementService.svc?wsdl";
 private $locationCampaign = "http://api.dolist.net/V2/CampaignManagementService.svc/soap1.1";
+//Contrat Stats Service 
+private $proxywsdlStatsCampaignMail = "http://api.dolist.net/V2/StatisticsService.svc?wsdl";
+private $locationStatsCampaignMail =  "http://api.dolist.net/V2/StatisticsService.svc/soap1.1";
+//Contrat MessageService
+private $proxywsdlSms = "http://api.dolist.net/V2/SMSService.svc?wsdl";
+private $locationSms = "http://api.dolist.net/V2/SMSService.svc/soap1.1";
+
+
+
 /**
  * \brief      Définit un nouvel objet API
  * \details    Définit les paramètres obligatoire pour toute manipulation de l'API Dolist.
@@ -141,6 +150,48 @@ private function jetonCampaignService(){
       );
       return $token;
 }
+
+// On définit le client Soap pour la fonction de stat de campagne mail
+private function soapStatsCampaignMail(){
+    // Génération du proxy
+      $client = new SoapClient($this->proxywsdlStatsCampaignMail, array('trace' => 1, 'location' => $this->locationStatsCampaignMail));
+      return $client;
+}
+
+//On définit le jeton d'authentification pour manipuler la fonction de stat
+private function jetonStatsCampaignMail(){
+
+  $result_auth=$this->authenticationSegment();
+  // Création du jeton
+  $token = array(
+        'AccountID' => $this->account,
+        'Key' => $result_auth->GetAuthenticationTokenResult->Key
+      );
+      return $token;
+}
+
+private function soapSmsService(){
+  // Génération du proxy
+      $client = new SoapClient($this->proxywsdlSms, array('trace' => 1, 'location' => $this->locationSms));
+      return $client;
+}
+
+private function jetonSmsService(){
+$result_auth=$this->authenticationSegment();
+
+  // Création du jeton
+      $token = array(
+        'AccountID' => $this->account,
+        'Key' => $result_auth->GetAuthenticationTokenResult->Key
+      );
+return $token;      
+}
+
+
+
+
+
+
 /**
  * \brief      Fonction de Création d'un contact Dolist
  * \details    On créé un nouveau contact que l'on ajoute à sa base de contacts Dolist
@@ -883,10 +934,10 @@ try {
         'FromName' => 'saisondor-dev',
         'ReplyAddress' => 'benoit@saisondor.com',
         'ReplyName' => 'saisondor-dev',
-        'Subject' => 'e-mail de bienvenue ',
+        'Subject' => 'bonjour ',
         'Message' => array(
           'Id' => 0,  //0 car nouveau message, sinon identifiant du message (dans ce cas inutile de renseigner les autres champs du message : Name, ContentHtml, ContentText, Encoding et MessageType)
-          'Name' => 'Mon message',
+          'Name' => 'bonjour',
           'ContentHtml' => '<html><body><p></p>Lorem ipsum dolor sit amet, consectetur ...</body></html>',
           'ContentText' => '',
           // Choix possible : utf-8, iso-8859-1, iso-8859-2, iso-8859-3, iso-8859-4, iso-8859-5, iso-8859-6, iso-8859-7, iso-8859-8, iso-8859-9, iso-8859-13, iso-8859-15
@@ -928,6 +979,15 @@ catch(SoapFault $fault) {
 }
 }
 
+/**
+ * \brief      Envoi d'une campagne mail
+ * \details    Envoi une campagne mail avec un segment donné
+ * \param      idCampaign        L'id de la campagne à envoyer
+ * \param      idSegment         L'id du segment à utiliser
+ * \param      date              La date d'envoi
+ * \param      volume            Nombre de messages à envoyer
+ * \param      period            periode d'envoi
+ */
 function sendCampaignMail(){
 try {
  $result_auth=$this->authenticationSegment();
@@ -970,6 +1030,12 @@ catch(SoapFault $fault) {
   
 }
 }
+
+/**
+ * \brief      Mise en pause d'une campagne mail
+ * \details    La campagne mail choisie sera mise en pause
+ * \param      idCampaign        L'id de la campagne à mettre en pause
+ */
  function pauseCampaignMail($id){
 try{
   $result_auth=$this->authenticationSegment();
@@ -1004,6 +1070,13 @@ $detail = $fault->detail;
   watchdog('pause_campaign','Description : @message',array('@message' => $detail->ServiceException->Description));
 }
 }
+
+
+/**
+ * \brief      Arret d'une campagne mail
+ * \details    La campagne mail choisie sera arrêtée
+ * \param      idCampaign        L'id de la campagne à arrêter
+ */
 function cancelCampaignMail($id){
 try{
   $result_auth=$this->authenticationSegment();
@@ -1039,6 +1112,11 @@ $detail = $fault->detail;
 }
  }
 
+/**
+ * \brief      Reprise d'une campagne mail
+ * \details    Reprise d'une campagne mail mise en pause
+ * \param      idCampaign        L'id de la campagne à relancer
+ */
 function resumeCampaignMail($id){
 try{
   $result_auth=$this->authenticationSegment();
@@ -1077,7 +1155,12 @@ $detail = $fault->detail;
 }
 }
 
+/**
+ * \brief      Récupération des campagnes mail
+ * \details    On récupère les campagnes mail pour afficher leurs informations
+*/
 function getAllCampaignsMail(){
+//TODO  : A CORRIGER!
 try{
  $result_auth=$this->authenticationSegment();
  if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
@@ -1102,6 +1185,10 @@ try{
       if (!is_null($result->GetCampaignsResult) and $result->GetCampaignsResult != '')
       {
         $campaigns = $result->GetCampaignsResult->CampaignDetailsList;
+        
+        watchdog('get_all_campaigns_mail','@mail',array('@mail'=>count($campaigns)));
+         watchdog('get_all_campaigns_mail','@mail',array('@mail'=>$camp->ID));
+
        }
       else {
         watchdog('get_all_campaigns_mail','les campagnes n ont pas pu être récupérées');
@@ -1118,5 +1205,398 @@ catch(SoapFault $fault){
 }
 }
 
+/**
+ * \brief      Stats d'une campagne mail
+ * \details    On affiche les stats d'une campagne mail en cours
+ * \param      idCampaign        L'id de la campagne dont on veut les stats
+ */
+function getStatsCampaignMail($id){
+  try{
+$result_auth=$this->authenticationSegment();
+    if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+    $client=$this->soapStatsCampaignMail();
+    $token=$this->jetonStatsCampaignMail();
+            
+      // Création de la requête
+      $getstatsRequest = array(
+        'token' => $token,
+        'campaignId' => $id
+      ); 
+      // Récupération d'un segment
+      $result = $client->GetStatisticsCampaign($getstatsRequest);
+       if (!is_null($result->StatisticsCampaign) and $result->StatisticsCampaign != '')
+      {
+  $campaigns = $result->StatisticsCampaign;
+        watchdog('stats_campaign_mail','@mail',array('@mail'=>$campaigns->ClickedOneOrSeveralLink));
+        watchdog('stats_campaign_mail','@mail',array('@mail'=>$campaigns->Complaints));
+        watchdog('stats_campaign_mail','@mail',array('@mail'=>$campaigns->ContactOpened));
+        watchdog('stats_campaign_mail','@mail',array('@mail'=>$campaigns->MessageDeliverySpending));
+        watchdog('stats_campaign_mail','@mail',array('@mail'=>$campaigns->MessageHarbounce));
+        watchdog('stats_campaign_mail','@mail',array('@mail'=>$campaigns->MessageSent));
+        watchdog('stats_campaign_mail','@mail',array('@mail'=>$campaigns->SentDelivered));
+        watchdog('stats_campaign_mail','@mail',array('@mail'=>$campaigns->UnSubscribed));
+      }
+
+    else{
+
+  watchdog('stats_campaign_mail','Les statistiques de la campagne n ont pas pu être récupérées');
+
+    }
+  }}}
+      catch(SoapFault $fault){
+  $detail = $fault->detail;
+  watchdog('stats_campaign_mail','Erreur Soap');
+  watchdog('stats_campaign_mail','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('stats_campaign_mail','Description : @message',array('@message' => $detail->ServiceException->Description));
+}
+}
+
+/**
+ * \brief      Envoie d'une campagne mail de test
+ * \details    Envoi d'un BAT pour tester la campagne
+ * \param      idCampaign        L'id de la campagne à envoyer en mode test
+ * \param      idSegment         L'id du segment à utiliser
+ */
+function sendCampaignMailTest(){
+
+  try {
+  
+    $result_auth=$this->authenticationSegment();
+  
+  if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+     $client=$this->soapCampaignService();
+     $token=$this->jetonCampaignService();
+      $sendCampaignTestRequest = array(
+        'token' => $token,
+        'campaignId' => 4215467,
+        'segmentId' => 2
+      );
+        
+      // Envoi d'une campagne de test
+      $result = $client->SendCampaignTest($sendCampaignTestRequest);
+
+      if (!is_null($result->SendCampaignTestResult) and $result->SendCampaignTestResult != '')
+      {
+        $ticket = $result->SendCampaignTestResult;
+        echo "Le demande d'envoi de la campagne de test a été prise en compte. Pour obtenir le statut voici le ticket : ".$ticket;
+        watchdog('send_campaign_mail_test','La demande d envoi de la campagne de test est prise en compte. Voici le ticket : @ticket',array('@ticket'=>$ticket));
+      }
+    }
+  }
+}
+//Gestion d'erreur
+catch(SoapFault $fault) {
+   $detail = $fault->detail;
+  watchdog('send_campaign_mail_test','Erreur Soap');
+  watchdog('send_campaign_mail_test','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('send_campaign_mail_test','Description : @message',array('@message' => $detail->ServiceException->Description));
+}
+}
+
+/**
+ * \brief      Création d'un message sms
+ * \details    Création d'un message sms utilisable pour les campagnes sms
+ * \param      name        Le nom du message à créer
+ * \param      text        Le texte du message
+ */
+function createMessageSms(){
+
+  try {
+ $result_auth=$this->authenticationSegment();
+  
+  if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+    $client=$this->soapSmsService();
+    $token=$this->jetonSmsService();
+      $createMessageRequest = array(
+        'token' => $token,
+        'message' => array(
+          //Nom du message
+          'Name' => 'Message Test module Drupal',
+          //Contenu du message avec possibilité de personnalisation
+          'Text' => 'Bonjour c est un message test'
+        )
+      );
+    
+      // Création du message
+      $result = $client->CreateMessage($createMessageRequest);
+      if (!is_null($result->CreateMessageResult) and $result->CreateMessageResult != '')
+      {
+        $message = $result->CreateMessageResult;
+        watchdog('create_sms','Le message a été créé');
+        watchdog('create_sms','Id : @id',array('@id'=>$message->Id));
+        watchdog('create_sms','Text : @text',array('@text'=>$message->Text));
+        watchdog('create_sms','UpdateDate : @up',array('@up'=>$message->UpdateDate));
+        watchdog('create_sms','Length : @l',array('@l'=>$message->Length));
+        watchdog('create_sms','Name : @name',array('@name'=>$message->Name));
+      }
+      else
+      {
+        watchdog('create_sms','Le message  n a pas été créé');
+      }
+    }
+  }
+}
+//Gestion d'erreur
+catch(SoapFault $fault) {
+ $detail = $fault->detail;
+  watchdog('create_sms','Erreur Soap');
+  watchdog('create_sms','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('create_sms','Description : @message',array('@message' => $detail->ServiceException->Description));
+}
+}
+
+/**
+ * \brief      Récupération d'un message sms
+ * \details    Récupération d'un message sms préalablement créé
+ * \param      idsms        L'id du message à récupérer
+ */
+function getMessageSms(){
+ try {
+ $result_auth=$this->authenticationSegment();
+  if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+      $client=$this->soapSmsService();
+      $token=$this->jetonSmsService();
+      $getMessageRequest = array(
+        'token' => $token,
+        'messageId' => 1
+      );
+    
+      // Récupération du message
+      $result = $client->GetMessage($getMessageRequest);
+      if (!is_null($result->GetMessageResult) and $result->GetMessageResult != '')
+      {
+        $message = $result->GetMessageResult;
+        watchdog('get_sms','Id : @id',array('@id'=>$message->Id));
+        watchdog('get_sms','Text : @text',array('@text'=>$message->Text));
+        watchdog('get_sms','UpdateDate : @up',array('@up'=>$message->UpdateDate));
+        watchdog('get_sms','Length : @l',array('@l'=>$message->Length));
+        watchdog('get_sms','Name : @name',array('@name'=>$message->Name));  
+      }
+      else
+      {
+        watchdog('get_sms','Le message n a pas été trouvé');
+      }
+    }
+  }
+}
+//Gestion d'erreur
+catch(SoapFault $fault) {
+$detail = $fault->detail;
+  watchdog('get_sms','Erreur Soap');
+  watchdog('get_sms','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('get_sms','Description : @message',array('@message' => $detail->ServiceException->Description));
+} 
+}
+
+/**
+ * \brief      Mise à jour d'un message sms
+ * \details    Mise à jour d'un message sms préalablement créé
+ * \param      idsms        L'id du message à récupérer
+ * \param      name         Le nom à mettre à jour
+ * \param      text         Le texte à mettre à jour
+ */
+function updateMessageSms(){
+  try {
+    $result_auth=$this->authenticationSegment();
+    if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+     $client=$this->soapSmsService();
+     $token=$this->jetonSmsService();
+      $updateMessageRequest = array(
+        'token' => $token,
+        'message' => array(
+          //Identifiant
+          'Id' => 1,
+          //Nom du message
+          'Name' => 'Nouveau nom du message après MAJ',
+          //Contenu du message avec possibilité de personnalisation
+          'Text' => 'Ceci est le texte apres MAJ'
+        )
+      );
+    
+      // Modification du message
+      $result = $client->UpdateMessage($updateMessageRequest);
+      watchdog('update_sms','Le message a bien été modifié');
+    }
+  }
+}
+//Gestion d'erreur
+catch(SoapFault $fault) {
+$detail = $fault->detail;
+  watchdog('update_sms','Erreur Soap');
+  watchdog('update_sms','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('update_sms','Description : @message',array('@message' => $detail->ServiceException->Description));
+
+}
+}
+
+/**
+ * \brief      Création d'une campagne sms
+ * \details    Création d'une campagne sms
+ * \param      messageid      L'id du message à intégrer à la campagne
+ */
+function createCampaignSms(){
+try {
+ $result_auth=$this->authenticationSegment();
+  if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+     $client=$this->soapSmsService();
+     $token=$this->jetonSmsService();
+        $createCampaignRequest = array(
+        'token' => $token,
+        'messageId' => 1,
+        'listUsersGroups' => null
+      );
+    
+      // Création d'une campagne
+      $result = $client->CreateCampaign($createCampaignRequest);
+      if (!is_null($result->CreateCampaignResult) and $result->CreateCampaignResult != '')
+      {
+        $campaign = $result->CreateCampaignResult;
+        watchdog('create_campaign_sms','création effectuée');
+      }
+      else
+      {
+        watchdog('create_campaign_sms','La campagne n a pas été créée');
+      }
+    }
+  }
+}
+//Gestion d'erreur
+catch(SoapFault $fault) {
+$detail = $fault->detail;
+  watchdog('create_campaign_sms','Erreur Soap');
+  watchdog('create_campaign_sms','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('create_campaign_sms','Description : @message',array('@message' => $detail->ServiceException->Description));
+
+}
+}
+
+/**
+ * \brief      Envoi d'une campagne sms
+ * \details    Envoi d'une campagne sms
+ * \param      campagneid      L'id de la campagne à envoyer
+ * \param      segmentid       Id du segment à intégrer à la campagne
+ * \param      date            La date d'envoi  
+ */
+function sendCampaignSms(){
+try {
+  $result_auth=$this->authenticationSegment();
+  if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+        $client=$this->soapSmsService();
+        $token=$this->jetonSmsService();
+      //Envoi de la campagne le 1 mai 2011 à 10h45
+      $sendCampaignRequest = array(
+        'token' => $token,
+        'campaignId' => 82582,
+        'segmentId' => 182,
+        'defaultPrefix' => '+33',
+        'sendDate' => mktime(10, 45, 0, 7, 1,2020)
+      );
+      
+        // Envoi d'une campagne sms
+      $result = $client->SendCampaign($sendCampaignRequest);
+      watchdog('send_campaign_sms','La demande d envoi de la campagne sms a été prise en compte');
+    }
+  }
+}
+//Gestion d'erreur
+catch(SoapFault $fault) {
+$detail = $fault->detail;
+  watchdog('send_campaign_sms','Erreur Soap');
+  watchdog('send_campaign_sms','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('send_campaign_sms','Description : @message',array('@message' => $detail->ServiceException->Description));
+
+
+}
+}
+
+/**
+ * \brief      Envoi d'une campagne sms de test
+ * \details    Envoi d'une campagne sms de test, envoi d'un BAT
+ * \param      campagneid      L'id de la campagne à envoyer
+ * \param      segmentid       Id du segment à intégrer à la campagne
+ * \param      date            La date d'envoi  
+ */
+function sendCampaignSmsTest(){
+try {
+ $result_auth=$this->authenticationSegment();
+  if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+      $client=$this->soapSmsService();
+      $token=$this->jetonSmsService();
+      $sendCampaignBATRequest = array(
+        'token' => $token,
+        'campaignId' => 82582,
+        'segmentId' => 360,
+        'defaultPrefix' => '+33'
+      );
+    
+      // Envoi d'une campagne sms en bat
+      $result = $client->SendCampaignBAT($sendCampaignBATRequest);
+      watchdog('send_campaign_sms_test','La demande d envoi de la campagne sms en bat est prise en compte');
+      
+    }
+  }
+}
+//Gestion d'erreur
+catch(SoapFault $fault) {
+$detail = $fault->detail;
+  watchdog('create_campaign_sms','Erreur Soap');
+  watchdog('create_campaign_sms','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('create_campaign_sms','Description : @message',array('@message' => $detail->ServiceException->Description));
+}
+}
+
+/**
+ * \brief      Stats d'une campagne sms et récupération de toutes les campagnes
+ * \details    Affichage des stats d'une campagne sms ou récupération des campagnes sms
+ * \param      AllCampaigns     Si on veut renvoyer toutes les campagnes ou pas
+ * \param      CampaignsRecentlySentCount     Renvoi des X dernières campagnes
+ * \param      Date             Renvoi des campagnes à partir de cette date
+ */
+function getStatsCampaignsSms(){
+try {
+ $result_auth=$this->authenticationSegment();
+  if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+      $client=$this->soapSmsService();
+      $token=$this->jetonSmsService();
+     
+       $sendCampaignStatsRequest = array(
+        'token' => $token,
+        'filters' => array(
+          'AllCampaigns'=>true,
+          'CampaignsRecentlySentCount'=>null,
+          'Date'=>null
+          )
+      );
+    
+      $result = $client->GetCampaigns($sendCampaignStatsRequest);
+       if (!is_null($result->GetCampaignsResult) and $result->GetCampaignsResult != '')
+      {
+
+        $stats = $result->GetCampaignsResult;
+        $camp=$stats->SmsCampaign[2];
+        watchdog('stats_campaign_sms','compte : @dc',array('@dc'=>count($stats)));
+        watchdog('stats_campaign_sms','Id campagne : @id',array('@id'=>$camp->Id));       
+      }
+      else
+      {
+        watchdog('stats_campaign_sms','La campagne n a pas été créée');
+      }
+}}}
+catch(SoapFault $fault) {
+$detail = $fault->detail;
+  watchdog('stats_campaign_sms','Erreur Soap');
+  watchdog('stats_campaign_sms','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('stats_campaign_sms','Description : @message',array('@message' => $detail->ServiceException->Description));
+}
+}
 
 }?>
