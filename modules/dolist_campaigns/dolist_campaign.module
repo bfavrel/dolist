@@ -1,0 +1,31 @@
+<?php
+/**
+ * Implements   hook_menu().
+ */
+function dolist_campaign_menu() {
+  $items['admin/config/services/dolist/campaigns'] = array(
+    'title' => 'Campaigns',
+    'description' => 'Manage Dolist Campaigns.',
+    'page arguments' => array('dolist_campaign_campaign_form'),
+    'access arguments' => array('administer dolist campaigns'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'dolist_campaign.admin.inc',
+    'weight' => 10
+  );
+  $items['admin/config/services/dolist/campaigns/add'] = array(
+    'title' => 'Add a Campaign',
+    'description' => 'Add a new Dolist campaign.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('dolist_campaign_campaign_form'),
+    'access arguments' => array('administer mailchimp campaigns'),
+    'file' => 'dolist_campaign.admin.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+
+ 
+
+  return $items;
+}
+
+
+?>

@@ -10,4 +10,4 @@ dependencies[] = token_filter
 dependencies[] = token_insert
 
 
-configure = admin/config/dolist
+configure = admin/config/services/dolist

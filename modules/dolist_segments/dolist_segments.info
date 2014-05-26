@@ -1,0 +1,6 @@
+name = Dolist Segments
+description = Create new Segments.
+package = Dolist
+core = 7.x
+
+configure = admin/config/services/dolist/segments

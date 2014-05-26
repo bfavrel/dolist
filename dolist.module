@@ -1,20 +1,25 @@
 <?php
-//hook_menu
-function dolist_menu(){
-  $items['admin/config/dolist'] = array(
-    'title' => 'Config exemple',
-    'description' => 'Exemple de configuration ',
+/**
+ * Implements hook_menu().
+ */
+function dolist_menu() {
+ 
+  $items['admin/config/services/dolist'] = array(
+    'title' => 'Dolist',
+    'description' => 'Manage Dolist Settings.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('dolist_global_settings_form'),
-    'access arguments' => array('administer site configuration'),
+    'access arguments' => array('administer dolist'),
     'file' => 'dolist.admin.inc',
     'type' => MENU_NORMAL_ITEM,
   );
-
-  return $items;
-
+  $items['admin/config/services/dolist/global'] = array(
+    'title' => 'Global Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 10,
+  );
+ return $items;
 }
-
 //hook_token_info 
 //Création des tokens des champs Dolist
 function dolist_token_info() {

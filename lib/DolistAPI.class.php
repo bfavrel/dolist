@@ -66,7 +66,7 @@ return $result;
 
 // On définit le client Soap pour les fonctions sur les contacts
 private function soapClientContactService(){
- // Génération du proxy
+ // Génération du proxy  
   $clientContact = new SoapClient($this->proxywsdlContact, array('trace' => 1, 'location' => $this->locationContact));
 return $clientContact;
 }
@@ -80,7 +80,6 @@ private function jetonContactService(){
   );
   return $token; 
 }
-
 
 // ON définit le client Soap et le jeton d'authentification pour la partie segment de l'Api
 private function authenticationSegment(){
@@ -135,7 +134,7 @@ private function jetonMessageService(){
 
 // On définit le client Soap pour les fonctions sur les campagnes
 private function soapCampaignService(){
-     // Génération du proxy
+     // Génération du proxy  array('soap_version' => SOAP_1_2
       $client = new SoapClient($this->proxywsdlCampaign, array('trace' => 1, 'location' => $this->locationCampaign));
       return $client;
 }
@@ -186,11 +185,6 @@ $result_auth=$this->authenticationSegment();
       );
 return $token;      
 }
-
-
-
-
-
 
 /**
  * \brief      Fonction de Création d'un contact Dolist
@@ -694,6 +688,82 @@ try
 
 }
 
+/**
+ * \brief      Recherche sur les contacts
+ * \details    Cette fonction permet de rechercher un contact dans la liste des contacts pour l'afficher et/ou le modfier.
+ * \param      Email        L'email de contact à rechercher 
+  */
+function getContacts($email){
+try 
+{
+  $result=$this->authenticationService();
+  
+  if (!is_null($result->GetAuthenticationTokenResult) and $result->GetAuthenticationTokenResult != '') {
+    if ($result->GetAuthenticationTokenResult->Key != '') {
+      $clientContact=$this->soapClientContactService();
+      $token=$this->jetonContactService();
+          
+      $contactFilter = array(
+        'Email' => $email);
+      
+      $contactRequest = array(
+        'Offset' => 0, //Optionnel: L'indice du 1er contact retourné. 
+        'AllFields' => true, //Indique si on doit retourner tous les champs
+        'Interest' => true, //Indique si les interets déclarés sont retourné par la requete
+        'LastModifiedOnly' => false, //Indique si la requete doit retourner uniquement les derniers contacts modifiés
+        'RequestFilter' => $contactFilter); //Optionnel   
+      
+      $request = array(
+        'token'=> $token,
+        'request'=> $contactRequest
+      );
+      
+      // Récupération de tous les contacts
+      $result = $clientContact->GetContact($request);
+      if (!is_null($result->GetContactResult) and $result->GetContactResult != '')
+      {
+        $contacts = $result->GetContactResult->ContactList->ContactData->CustomFields->CustomField;
+        watchdog('get_contacts','Nombre total correspondants à la requête : @c', array('@c' => $result->GetContactResult->TotalContactsCount));
+       
+        foreach ($contacts as $value) {
+          if($value->Name == 'email')
+          watchdog('get_contacts','Nombre total correspondants à la requête : @c', array('@c' => $value->Value)); 
+          elseif ($value->Name == 'lastname') 
+             watchdog('get_contacts','Nombre total correspondants à la requête : @c', array('@c' => $value->Value)); 
+        }
+
+      }
+      else
+      {
+        watchdog('get_contacts','Aucun contact trouvé');
+      }     
+      
+      
+      /******************************************/
+      
+      
+      
+    }
+    else {
+    watchdog('get_contacts','problème authentification');
+    }
+  }
+  else 
+  {
+    watchdog('get_contacts','Le token authentification est nul');
+  }
+}
+//Gestion d'erreur
+catch(SoapFault $fault) 
+{
+  $detail = $fault->detail;
+  watchdog('get_contacts','Erreur Soap');
+  watchdog('get_contacts','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('get_contacts','Description : @message',array('@message' => $detail->ServiceException->Description));
+}
+
+}
+
 function createSegment(){
 //A voir plus tard
 }
@@ -873,7 +943,6 @@ function getMessages($id)
       $client=$this->soapMessageService();
       $token= $this->jetonMessageService();
       
-
       $GetMessageRequest = array(
         'MessageID' => $id
       );
@@ -885,8 +954,7 @@ function getMessages($id)
       );
       
       // Création d'une campagne
-      $result = $client->GetMessage($message);
-
+            $result = $client->GetMessage($message);
       if (!is_null($result->GetMessageResult) and $result->GetMessageResult != '')
       {
         $response = $result->GetMessageResult;
@@ -919,6 +987,7 @@ catch(SoapFault $fault) {
 /**
  * \brief      Création d'un campagne mail
  * \details    On créé une campagne mail.la liste des paramètres sera à rajouter.
+ * \param      A déterminer
  */
 function createCampaignMail(){
 try {
@@ -1184,12 +1253,10 @@ try{
       $result = $client->GetCampaigns($getCampaignsRequest);
       if (!is_null($result->GetCampaignsResult) and $result->GetCampaignsResult != '')
       {
-        $campaigns = $result->GetCampaignsResult->CampaignDetailsList;
-        
+         $campaigns = $result->GetCampaignsResult->CampaignDetailsList;
+      
         watchdog('get_all_campaigns_mail','@mail',array('@mail'=>count($campaigns)));
-         watchdog('get_all_campaigns_mail','@mail',array('@mail'=>$camp->ID));
-
-       }
+      }
       else {
         watchdog('get_all_campaigns_mail','les campagnes n ont pas pu être récupérées');
       }
@@ -1199,9 +1266,9 @@ try{
 
 catch(SoapFault $fault){
   $detail = $fault->detail;
-  watchdog('pause_campaign','Erreur Soap');
-  watchdog('pause_campaign','Message : @message',array('@message' => $detail->ServiceException->Message));
-  watchdog('pause_campaign','Description : @message',array('@message' => $detail->ServiceException->Description));
+  watchdog('get_all_campaigns_mail','Erreur Soap');
+  watchdog('get_all_campaigns_mail','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('get_all_campaigns_mail','Description : @message',array('@message' => $detail->ServiceException->Description));
 }
 }
 
