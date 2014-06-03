@@ -16,7 +16,7 @@ function dolist_contacts_menu() {
     'title' => 'Add a new Contact',
     'description' => 'Add a new Dolist Contact',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('dolist_contacts_form'),
+    'page arguments' => array('dolist_contacts_add_form'),
     'access arguments' => array('administer mailchimp contacts'),
     'file' => 'dolist_contacts.admin.inc',
     'type' => MENU_LOCAL_ACTION,
@@ -26,6 +26,7 @@ function dolist_contacts_menu() {
 
   return $items;
 }
+
 
 
 ?>

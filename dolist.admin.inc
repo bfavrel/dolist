@@ -15,6 +15,7 @@ function dolist_global_settings_form($form, &$form_state) {
   $form['Api'] = array(
     '#type' => 'textfield',
     '#title' => 'Clé Api',
+    '#description' => 'Saisissez la clé API de votre compte Dolist',
     '#default_value' => '',
     '#size' => 100,
     '#maxlength' => 128,
@@ -24,6 +25,7 @@ function dolist_global_settings_form($form, &$form_state) {
   $form['ID'] = array(
     '#type' => 'textfield',
     '#title' => 'Identifiant du compte',
+    '#description' => 'Saisissez l identifiant de votre compte Dolist',
     '#default_value' => '',
     '#size' => 100,
     '#maxlength' => 128,
