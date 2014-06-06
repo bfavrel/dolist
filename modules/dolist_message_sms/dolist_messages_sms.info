@@ -1,0 +1,7 @@
+name = Dolist Messages Sms
+description = Create Message Sms
+package = Dolist
+core = 7.x
+
+dependencies[] = entity
+configure = admin/config/services/dolist/messagessms

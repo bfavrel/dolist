@@ -806,7 +806,7 @@ try {
         array('@contact' => $first_segment->ContactsCount));
         watchdog('get_all_segments','Groups : @group',
         array('@group' => $first_segment->Groups));
-      
+        return $segments;     
       }
       else
       {
@@ -1368,7 +1368,7 @@ catch(SoapFault $fault) {
  * \param      name        Le nom du message à créer
  * \param      text        Le texte du message
  */
-function createMessageSms(){
+function createMessageSms($name,$text){
 
   try {
  $result_auth=$this->authenticationSegment();
@@ -1381,9 +1381,9 @@ function createMessageSms(){
         'token' => $token,
         'message' => array(
           //Nom du message
-          'Name' => 'Message Test module Drupal',
+          'Name' => $name,
           //Contenu du message avec possibilité de personnalisation
-          'Text' => 'Bonjour c est un message test'
+          'Text' => $text
         )
       );
     
@@ -1506,7 +1506,7 @@ $detail = $fault->detail;
  * \details    Création d'une campagne sms
  * \param      messageid      L'id du message à intégrer à la campagne
  */
-function createCampaignSms(){
+function createCampaignSms($messageId){
 try {
  $result_auth=$this->authenticationSegment();
   if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
@@ -1515,7 +1515,7 @@ try {
      $token=$this->jetonSmsService();
         $createCampaignRequest = array(
         'token' => $token,
-        'messageId' => 1,
+        'messageId' => $messageId,
         'listUsersGroups' => null
       );
     
@@ -1651,7 +1651,9 @@ try {
         $stats = $result->GetCampaignsResult;
         $camp=$stats->SmsCampaign[2];
         watchdog('stats_campaign_sms','compte : @dc',array('@dc'=>count($stats)));
-        watchdog('stats_campaign_sms','Id campagne : @id',array('@id'=>$camp->Id));       
+        watchdog('stats_campaign_sms','Id campagne : @id',array('@id'=>$camp->Id));
+        $statscamp=$stats->SmsCampaign;
+        return $statscamp;      
       }
       else
       {

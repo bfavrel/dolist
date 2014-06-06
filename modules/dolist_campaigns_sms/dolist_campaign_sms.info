@@ -1,0 +1,7 @@
+name = Dolist Campaigns Sms
+description = Create, send and test Dolist campaigns Sms
+package = Dolist
+core = 7.x
+
+dependencies[] = entity
+configure = admin/config/services/dolist/campaignssms

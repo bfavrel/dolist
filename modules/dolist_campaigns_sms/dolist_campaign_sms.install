@@ -1,0 +1,30 @@
+<?php
+/**
+ * entity base table schema
+ * 
+ * the base table defines abstract entity properties
+ * since the books entity is intended to have several bundles
+ * then the bundle property is defined as "type"
+ */
+function dolist_campaign_sms_schema() 
+{
+     $schema['campaignsms'] = array(
+    'description' => 'The base table for campaign sms.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The primary identifier for a campaign',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE),
+      'idmessage' => array(
+        'description' => 'The id of the message sms',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+      ),
+    'primary key' => array('nid'),
+  ); 
+return $schema;
+}
+

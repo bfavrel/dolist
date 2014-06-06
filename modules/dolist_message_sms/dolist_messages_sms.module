@@ -1,0 +1,51 @@
+<?php
+
+
+/**
+ * Implements   hook_menu().
+ */
+function dolist_messages_sms_menu() {
+  $items['admin/config/services/dolist/messagessms'] = array(
+    'title' => 'Message Sms',
+    'description' => 'Manage Dolist Messages Sms',
+    'page arguments' => array('dolist_messages_sms_form'),
+    'access arguments' => array('administer dolist Messages Sms'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'dolist_messages_sms.admin.inc',
+    'weight' => 10
+  );
+  $items['admin/config/services/dolist/messagessms/add'] = array(
+    'title' => 'Add a new Message Sms',
+    'description' => 'Add a new Dolist Message Sms',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('dolist_messages_sms_add_form'),
+    'access arguments' => array('administer dolist Messages Sms'),
+    'file' => 'dolist_messages_sms.admin.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+
+ 
+
+  return $items;
+}
+function dolist_message_sms_entity_info() {
+  $return = array(
+    'sms' => array(
+      'label' => t('Sms'),
+      'controller class' => 'EntityAPIController',
+      'entity class' => 'Entity',
+      'base table' => 'messagesms',
+      'fieldable' => FALSE,
+      'entity keys' => array(
+        'id' => 'nid',
+      ),
+    ),
+  );
+  return $return;
+}
+
+
+
+
+
+?>

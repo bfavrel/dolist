@@ -3,4 +3,7 @@ description = Create new Segments.
 package = Dolist
 core = 7.x
 
+files[] = ../../lib/DolistAPI.class.php
+
+
 configure = admin/config/services/dolist/segments

@@ -1,0 +1,65 @@
+<?php
+/**
+ * Implements   hook_menu().
+ */
+function dolist_campaign_sms_menu() {
+  $items['admin/config/services/dolist/campaignssms'] = array(
+    'title' => 'Campaign Sms',
+    'description' => 'Manage Dolist Campaigns Sms',
+    'page arguments' => array('dolist_campaign_campaign_sms_form'),
+    'page callback' => 'campaign_sms_overview_page',
+    'access arguments' => array('administer dolist campaigns Sms'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'dolist_campaign_sms.admin.inc',
+    'weight' => 10
+  );
+  $items['admin/config/services/dolist/campaignssms/add'] = array(
+    'title' => 'Add a Campaign Sms',
+    'description' => 'Add a new Dolist campaign Sms.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('dolist_campaign_sms_form'),
+    'access arguments' => array('administer mailchimp campaigns Sms'),
+    'file' => 'dolist_campaign_sms.admin.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+  return $items;
+}
+
+function dolist_campaign_sms_entity_info() {
+  $return = array(
+    'campaignsms' => array(
+      'label' => t('Campaign Sms'),
+      'controller class' => 'EntityAPIController',
+      'entity class' => 'Entity',
+      'base table' => 'campaignsms',
+      'fieldable' => FALSE,
+      'entity keys' => array(
+        'id' => 'nid',
+      ),
+    ),
+  );
+  return $return;
+}
+
+function campaign_sms_overview_page(){
+  $api=new dolistAPI(variable_get('Api'),variable_get('ID'));
+  $result=$api->getStatsCampaignsSms();
+ $rows = array();
+ foreach ($result as $key=>$csms) {
+        
+     $rows[] = array(
+      $csms->Id,
+      $csms->Message->Name
+      );
+ }
+    return array(
+    '#theme' => 'table',
+    '#header' => array(
+      t('ID'),
+      t('Message Associé')
+    ),
+     '#rows' => $rows
+  );
+}
+
+?>
