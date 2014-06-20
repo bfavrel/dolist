@@ -7,7 +7,7 @@ function dolist_campaign_mail_menu() {
     'title' => 'Campaign Mail',
     'description' => 'Manage Dolist Campaigns Mail',
     'page arguments' => array('dolist_campaign_campaign_mail_form'),
-    'access arguments' => array('administer dolist campaigns mail'),
+    'access arguments' => array('administer dolist campaign mail'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'dolist_campaign_mail.admin.inc',
     'weight' => 10
@@ -17,13 +17,23 @@ function dolist_campaign_mail_menu() {
     'description' => 'Add a new Dolist campaign Mail.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('dolist_campaign_campaign_mail_form'),
-    'access arguments' => array('administer mailchimp campaigns'),
+    'access arguments' => array('administer dolist campaign mail'),
     'file' => 'dolist_campaign_mail.admin.inc',
     'type' => MENU_LOCAL_ACTION,
   );
   return $items;
 }
 
+/**
+ * Implements hook_permission().
+ */
+function dolist_campaign_mail_permission() {
+  return array(
+    'administer dolist campaign mail' => array(
+      'title' => t('Access content to campaign mail'),
+    )
+  );
+}
 
 
 ?>

@@ -1546,18 +1546,17 @@ $detail = $fault->detail;
 /**
  * \brief      Envoi d'une campagne sms
  * \details    Envoi d'une campagne sms
- * \param      campagneid      L'id de la campagne à envoyer
- * \param      segmentid       Id du segment à intégrer à la campagne
- * \param      date            La date d'envoi  
+ * \param      segment      Id du segment à intégrer à la campagne
+ * \param       id          Id de la campagne à envoyer
  */
-function sendCampaignSms(){
+function sendCampaignSms($id,$segment){
 try {
   $result_auth=$this->authenticationSegment();
   if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
     if ($result_auth->GetAuthenticationTokenResult->Key != '') {
         $client=$this->soapSmsService();
         $token=$this->jetonSmsService();
-      //Envoi de la campagne le 1 mai 2011 à 10h45
+      //Envoi de la campagne le 1 mai 2020 à 10h45
       $sendCampaignRequest = array(
         'token' => $token,
         'campaignId' => 82582,
@@ -1586,11 +1585,10 @@ $detail = $fault->detail;
 /**
  * \brief      Envoi d'une campagne sms de test
  * \details    Envoi d'une campagne sms de test, envoi d'un BAT
- * \param      campagneid      L'id de la campagne à envoyer
- * \param      segmentid       Id du segment à intégrer à la campagne
- * \param      date            La date d'envoi  
+ * \param      segment      Id du segment à intégrer à la campagne
+ * \param      id           Id de la campagne à tester    
  */
-function sendCampaignSmsTest(){
+function sendCampaignSmsTest($id,$segment){
 try {
  $result_auth=$this->authenticationSegment();
   if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
@@ -1600,7 +1598,7 @@ try {
       $sendCampaignBATRequest = array(
         'token' => $token,
         'campaignId' => 82582,
-        'segmentId' => 360,
+        'segmentId' => 358,
         'defaultPrefix' => '+33'
       );
     
@@ -1614,11 +1612,51 @@ try {
 //Gestion d'erreur
 catch(SoapFault $fault) {
 $detail = $fault->detail;
-  watchdog('create_campaign_sms','Erreur Soap');
-  watchdog('create_campaign_sms','Message : @message',array('@message' => $detail->ServiceException->Message));
-  watchdog('create_campaign_sms','Description : @message',array('@message' => $detail->ServiceException->Description));
+  watchdog('send_campaign_sms_test','Erreur Soap');
+  watchdog('send_campaign_sms_test','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('send_campaign_sms_test','Description : @message',array('@message' => $detail->ServiceException->Description));
 }
 }
+
+/**
+ * \brief      Simulation d'envoi d'une campagne SMS
+ * \details    simuler l'envoi d’une campagne SMS afin d'évaluer le nombre de contacts et de SMS générés avant l'envoi.
+  * \param      segment      Id du segment à intégrer à la campagne
+ */
+function sendCampaignSmsSimulate($id,$segment){
+try {
+ $result_auth=$this->authenticationSegment();
+  if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+      $client=$this->soapSmsService();
+      $token=$this->jetonSmsService();
+      $sendCampaignSimulateRequest = array(
+        'token' => $token,
+        'request'=>array(
+          'CampaignId'=>$id,
+          'DefaultPrefix' => '+33',
+          'SegmentId' => $segment,
+          )
+        );
+    
+      // Envoi d'une campagne sms en bat
+      $result = $client->SendCampaignSimulate($sendCampaignSimulateRequest);
+      watchdog('send_campaign_sms_simulate','La demande de simulation de la campagne sms est prise en compte');
+      
+    }
+  }
+}
+//Gestion d'erreur
+catch(SoapFault $fault) {
+$detail = $fault->detail;
+  watchdog('send_campaign_sms_simulate','Erreur Soap');
+  watchdog('send_campaign_sms_simulate','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('send_campaign_sms_simulate','Description : @message',array('@message' => $detail->ServiceException->Description));
+}
+}
+
+
+
 
 /**
  * \brief      Stats d'une campagne sms et récupération de toutes les campagnes
@@ -1649,9 +1687,6 @@ try {
       {
 
         $stats = $result->GetCampaignsResult;
-        $camp=$stats->SmsCampaign[2];
-        watchdog('stats_campaign_sms','compte : @dc',array('@dc'=>count($stats)));
-        watchdog('stats_campaign_sms','Id campagne : @id',array('@id'=>$camp->Id));
         $statscamp=$stats->SmsCampaign;
         return $statscamp;      
       }

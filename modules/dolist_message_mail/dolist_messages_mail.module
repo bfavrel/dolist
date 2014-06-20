@@ -7,7 +7,7 @@ function dolist_messages_mail_menu() {
     'title' => 'Message Mail',
     'description' => 'Manage Dolist Messages',
     'page arguments' => array('dolist_messages_mail_form'),
-    'access arguments' => array('administer dolist Messages'),
+    'access arguments' => array('administer dolist messages mail'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'dolist_messages_mail.admin.inc',
     'weight' => 10
@@ -17,16 +17,24 @@ function dolist_messages_mail_menu() {
     'description' => 'Add a new Dolist Message Type',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('dolist_messages_add_form'),
-    'access arguments' => array('administer dolist Messages'),
+    'access arguments' => array('administer dolist messages mail'),
     'file' => 'dolist_messages_mail.admin.inc',
     'type' => MENU_LOCAL_ACTION,
   );
 
- 
-
   return $items;
 }
 
+/**
+ * Implements hook_permission().
+ */
+function dolist_messages_mail_permission() {
+  return array(
+    'administer dolist messages mail' => array(
+      'title' => t('Access content to messages mail module'),
+    )
+  );
+}
 
 
 ?>

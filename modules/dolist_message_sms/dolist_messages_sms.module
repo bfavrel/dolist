@@ -9,7 +9,7 @@ function dolist_messages_sms_menu() {
     'title' => 'Message Sms',
     'description' => 'Manage Dolist Messages Sms',
     'page arguments' => array('dolist_messages_sms_form'),
-    'access arguments' => array('administer dolist Messages Sms'),
+    'access arguments' => array('administer dolist messages sms'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'dolist_messages_sms.admin.inc',
     'weight' => 10
@@ -19,7 +19,7 @@ function dolist_messages_sms_menu() {
     'description' => 'Add a new Dolist Message Sms',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('dolist_messages_sms_add_form'),
-    'access arguments' => array('administer dolist Messages Sms'),
+    'access arguments' => array('administer dolist messages sms'),
     'file' => 'dolist_messages_sms.admin.inc',
     'type' => MENU_LOCAL_ACTION,
   );
@@ -44,7 +44,16 @@ function dolist_message_sms_entity_info() {
   return $return;
 }
 
-
+/**
+ * Implements hook_permission().
+ */
+function dolist_messages_sms_permission() {
+  return array(
+    'administer dolist messages sms' => array(
+      'title' => t('Access content to messages sms'),
+    )
+  );
+}
 
 
 
