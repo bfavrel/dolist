@@ -16,12 +16,28 @@ function dolist_campaign_mail_menu() {
     'title' => 'Add a Campaign Mail',
     'description' => 'Add a new Dolist campaign Mail.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('dolist_campaign_campaign_mail_form'),
+    'page arguments' => array('dolist_campaign_create_mail_form'),
     'access arguments' => array('administer dolist campaign mail'),
     'file' => 'dolist_campaign_mail.admin.inc',
     'type' => MENU_LOCAL_ACTION,
   );
   return $items;
+}
+
+function dolist_campaign_mail_entity_info() {
+  $return = array(
+    'campaignmail' => array(
+      'label' => t('Campaign Mail'),
+      'controller class' => 'EntityAPIController',
+      'entity class' => 'Entity',
+      'base table' => 'campaignmail',
+      'fieldable' => FALSE,
+      'entity keys' => array(
+        'id' => 'nid',
+      ),
+    ),
+  );
+  return $return;
 }
 
 /**

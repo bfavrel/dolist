@@ -987,9 +987,17 @@ catch(SoapFault $fault) {
 /**
  * \brief      Création d'un campagne mail
  * \details    On créé une campagne mail.la liste des paramètres sera à rajouter.
- * \param      A déterminer
+ * \param      fap          Prefixe de l'adresse expéditeur
+ * \param      fn           Nom de l'expediteur  
+ * \param      ra           Adresse de retour
+ * \param      rn           Nom de reponse
+ * \param      s            Sujet
+ * \param      m            Id du message à envoyer
+ * \param      td           Tracking domain
+ * \param      c            Culture de la campagne
+ * \param      f            Type d'affichage des liens techniques
  */
-function createCampaignMail(){
+function createCampaignMail($fap,$fn,$ra,$rn,$s,$m,$td,$c,$f){
 try {
  $result_auth=$this->authenticationSegment();
   if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
@@ -999,13 +1007,13 @@ try {
       
       // Création d'une campagne
       $campaignEmail = array(
-        'FromAddressPrefix' => 'florian', //ex: cecile@mondomaine.com
-        'FromName' => 'saisondor-dev',
-        'ReplyAddress' => 'benoit@saisondor.com',
-        'ReplyName' => 'saisondor-dev',
-        'Subject' => 'bonjour ',
+        'FromAddressPrefix' => $fap, //ex: florian
+        'FromName' => $fn, //saisondor-dev
+        'ReplyAddress' => $ra,//benoit@saisondor.com
+        'ReplyName' => $rn,//saisondor-dev
+        'Subject' => $s,
         'Message' => array(
-          'Id' => 0,  //0 car nouveau message, sinon identifiant du message (dans ce cas inutile de renseigner les autres champs du message : Name, ContentHtml, ContentText, Encoding et MessageType)
+          'Id' => $m,  //0 car nouveau message, sinon identifiant du message (dans ce cas inutile de renseigner les autres champs du message : Name, ContentHtml, ContentText, Encoding et MessageType)
           'Name' => 'bonjour',
           'ContentHtml' => '<html><body><p></p>Lorem ipsum dolor sit amet, consectetur ...</body></html>',
           'ContentText' => '',
@@ -1014,12 +1022,12 @@ try {
           // Choix possible : IncludeEncodedImages, IncludeImageLinks
           'MessageType' => 'IncludeImageLinks'
         ),
-        'TrackingDomain' => 'dev.saisondor.com',
-        'Culture' => 'fr',
+        'TrackingDomain' => $td,//dev.saisondor.com
+        'Culture' => $c,//fr
         'VersionOnline' => true,
         'UnsubscribeFormId' => 0,
         // Choix possible : Html, Text
-        'FormatLinkTechnical' => 'Html'
+        'FormatLinkTechnical' => $f
       );
       
       // Création de la requête

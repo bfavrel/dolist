@@ -32,6 +32,16 @@ function dolist_global_settings_form($form, &$form_state) {
     '#required' => TRUE,
   );
 
+   $form['tracking'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Tracking',
+    '#description' => 'Nom de domaine du tracking',
+    '#default_value' => '',
+    '#size' => 100,
+    '#maxlength' => 128,
+    '#required' => TRUE,
+  );
+
   $form['fields'] = array(
     '#type' => 'submit',
     '#value' => 'Generer liste des champs',
@@ -46,6 +56,7 @@ function generate_dolist_fields ($form,&$form_state)
 variable_set('Api',$form_state['values']['Api']);
 variable_set('ID',$form_state['values']['ID']);
 variable_set('email',$form_state['values']['email']);
+variable_set('tracking',$form_state['values']['tracking']);
 $api=new dolistAPI(variable_get('Api'),variable_get('ID'));
 variable_set('list_fields',$api->createListContactFields());
 drupal_set_message(t('La liste des champs modifiables à été créée.'));

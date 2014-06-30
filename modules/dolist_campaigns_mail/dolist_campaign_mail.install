@@ -16,13 +16,37 @@ function dolist_campaign_mail_schema()
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE),
-      'idmessage' => array(
-        'description' => 'The id of the message sms',
+      'fromadressprefix' => array(
+        'description' => 'prefixe adresse expediteur',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'fromadressname' => array(
+        'description' => 'nom expediteur',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+     'replyadd' => array(
+        'description' => 'adresse retour',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'replyname' => array(
+        'description' => 'nom reponse',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'message' => array(
+        'description' => 'id message',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0),
-      ),
+      ),  
     'primary key' => array('nid'),
   ); 
 return $schema;
