@@ -11,9 +11,9 @@ function dolist_campaign_create_mail_form($form, &$form_state) {
   $form=array();
   
 
-   $form['FromAdressPrefix'] = array(
+   $form['campaign_mail_from_address_prefix'] = array(
     '#type' => 'textfield',
-    '#title' => 'From Adress Prefix',
+    '#title' => 'Préfixe expéditeur',
     '#description' => 'Préfixe de l adresse de l expéditeur',
     '#default_value' => '',
     '#size' => 100,
@@ -21,9 +21,9 @@ function dolist_campaign_create_mail_form($form, &$form_state) {
     '#required' => TRUE,
   );
 
-  $form['FromName'] = array(
+  $form['campaign_mail_from_name'] = array(
     '#type' => 'textfield',
-    '#title' => 'From Name',
+    '#title' => 'Nom expéditeur',
     '#description' => 'Nom de lexpéditeur',
     '#default_value' => '',
     '#size' => 100,
@@ -31,17 +31,17 @@ function dolist_campaign_create_mail_form($form, &$form_state) {
     '#required' => TRUE,
   );
 
-$form['ReplyAddress'] = array(
+$form['campaign_mail_reply_adress'] = array(
     '#type' => 'textfield',
-    '#title' => 'Reply Adress',
-    '#description' => 'Saisissez la clé API de votre compte Dolist',
+    '#title' => 'Adresse réponse',
+    '#description' => 'Adresse mail de réponse',
     '#default_value' => '',
     '#size' => 100,
     '#maxlength' => 128,
     '#required' => TRUE,
   );
 
-$form['ReplyName'] = array(
+$form['campaign_mail_reply_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Reply Name',
     '#description' => ' Nom de réponse',
@@ -51,7 +51,7 @@ $form['ReplyName'] = array(
     '#required' => TRUE,
   );
 
-$form['Subject'] = array(
+$form['campaign_mail_subject'] = array(
     '#type' => 'textfield',
     '#title' => 'Subject',
     '#description' => 'Sujet/Objet',
@@ -61,7 +61,7 @@ $form['Subject'] = array(
     '#required' => TRUE,
   );
   
-$form['MessageID'] = array(
+$form['campaign_mail_message_id'] = array(
     '#type' => 'textfield',
     '#title' => 'Message ID',
     '#description' => 'Message de la campagne',
@@ -71,7 +71,7 @@ $form['MessageID'] = array(
     '#required' => TRUE,
   );
 
-$form['Culture'] = array(
+$form['campaign_mail_culture'] = array(
     '#type' => 'textfield',
     '#title' => 'Culture',
     '#description' => ' Culture de la campagne',
@@ -81,38 +81,55 @@ $form['Culture'] = array(
     '#required' => TRUE,
   );
 
-$form['FormatLink'] = array(
+$form['campaign_mail_format_link'] = array(
     '#type' => 'textfield',
     '#title' => 'Format Link',
-    '#description' => 'format d affichage des données techniques',
+    '#description' => 'Type d affichage pour les liens techniques (Html / Texte)',
     '#default_value' => '',
     '#size' => 100,
     '#maxlength' => 128,
     '#required' => TRUE,
   );
+
+
+# the options to display in our checkboxes
+$toppings = array(
+  'oui' => t('Oui'),
+  'non' => t('Non')
+);
+
+# the drupal checkboxes form field definition
+$form['VersionOnline'] = array(
+  '#title' => t('Version Online'),
+  '#type' => 'checkboxes',
+  '#description' => t(' Ajout du lien pour la version en ligne.'),
+  '#options' => $toppings,
+);
  $form['#submit'][] = 'create_campaign_mail';
   return system_settings_form($form);
 }
 function create_campaign_mail($form,&$form_state){
-	$fromaddress=$form_state['values']['FromAdressPrefix'];
-    $fromname=$form_state['values']['FromName'];
-    $replyaddress=$form_state['values']['ReplyAddress'];
-    $replyname=$form_state['values']['ReplyName'];
-    $subject=$form_state['values']['Subject'];
-    $messageid=$form_state['values']['MessageID'];
-    $culture=$form_state['values']['Culture'];
-    $format=$form_state['values']['FormatLink'];
-    $tracking=variable_get('tracking');
+	$fromaddress=$form_state['values']['campaign_mail_from_address_prefix'];
+    $fromname=$form_state['values']['campaign_mail_from_name'];
+    $replyaddress=$form_state['values']['campaign_mail_reply_adress'];
+    $replyname=$form_state['values']['campaign_mail_reply_name'];
+    $subject=$form_state['values']['campaign_mail_subject'];
+    $messageid=$form_state['values']['campaign_mail_message_id'];
+    $culture=$form_state['values']['campaign_mail_culture'];
+    $format=$form_state['values']['campaign_mail_format_link'];
+    $tracking=variable_get('global_settings_campaign_mail_tracking_domain');
 
-    $api=new dolistAPI(variable_get('Api'),variable_get('ID'));
+    $api=new dolistAPI(variable_get('global_settings_api_key'),
+  variable_get('global_settings_account_id'));
     $result=$api->createCampaignMail($fromaddress,$fromname,$replyaddress,
         $replyname,$subject,$messageid,$tracking,$culture,$format);
     $mail = new stdClass();
-    $mail->fromadressprefix = $form_state['values']['FromAdressPrefix'];
-    $mail->fromadressname = $form_state['values']['FromName']; 
-    $mail->replyadd = $form_state['values']['ReplyAddress'];
-    $mail->replyname = $form_state['values']['ReplyName'];
-    $mail->message = $form_state['values']['MessageID'];
+    $mail->fromadressprefix = 
+    $form_state['values']['campaign_mail_from_address_prefix'];
+    $mail->fromadressname = $form_state['values']['campaign_mail_from_name']; 
+    $mail->replyadd = $form_state['values']['campaign_mail_reply_adress'];
+    $mail->replyname = $form_state['values']['campaign_mail_reply_name'];
+    $mail->message = $form_state['values']['campaign_mail_message_id'];
 
     // Enregistrement dans la base "books"
   drupal_write_record('campaignmail', $mail);

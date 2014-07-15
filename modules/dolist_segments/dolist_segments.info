@@ -6,4 +6,4 @@ core = 7.x
 files[] = ../../lib/DolistAPI.class.php
 
 
-configure = admin/config/services/dolist/segments
+configure = admin/structure/dolist/segments

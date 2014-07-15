@@ -4,4 +4,4 @@ package = Dolist
 core = 7.x
 
 dependencies[] = entity
-configure = admin/config/services/dolist/messagessms
+configure = admin/structure/dolist/messagessms

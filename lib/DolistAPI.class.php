@@ -348,9 +348,11 @@ function createListContactFields() {
   $result=$this->authenticationService();
   if (!is_null($result->GetAuthenticationTokenResult) and $result->GetAuthenticationTokenResult != '') {
     if ($result->GetAuthenticationTokenResult->Key != '') {
-      //Les critères de recherche des contacts
+       $clientContact=$this->soapClientContactService();
+      $token=$this->jetonContactService();
+            //Les critères de recherche des contacts
       $contactFilter = array(
-        'Email' => variable_get('email'));
+        'Email' => variable_get('global_settings_email_test'));
       
       $contactRequest = array(
         'Offset' => 0, //Optionnel: L'indice du 1er contact retourné. 
@@ -1370,6 +1372,8 @@ catch(SoapFault $fault) {
 }
 }
 
+
+
 /**
  * \brief      Création d'un message sms
  * \details    Création d'un message sms utilisable pour les campagnes sms
@@ -1509,6 +1513,38 @@ $detail = $fault->detail;
 }
 }
 
+
+/**
+ * \brief      Affichage de la liste des expéditeurs
+ * \details    Retourne la liste des expéditeurs personnalisés
+ */
+function getSenders(){
+try{
+   $result_auth=$this->authenticationSegment();
+    if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
+    if ($result_auth->GetAuthenticationTokenResult->Key != '') {
+     $client=$this->soapSmsService();
+     $token=$this->jetonSmsService();
+     $getSendersRequest = array(
+        'token' => $token
+      );
+      $result = $client->GetSenders($getSendersRequest);
+      $senders = $result->GetSendersResult->SmsSender;
+      return $senders;
+      watchdog('get_senders','liste récupérée');
+
+}
+}
+}
+//Gestion d'erreur
+catch(SoapFault $fault) {
+$detail = $fault->detail;
+  watchdog('get_senders','Erreur Soap');
+  watchdog('get_senders','Message : @message',array('@message' => $detail->ServiceException->Message));
+  watchdog('get_senders','Description : @message',array('@message' => $detail->ServiceException->Description));
+
+}
+}
 /**
  * \brief      Création d'une campagne sms
  * \details    Création d'une campagne sms

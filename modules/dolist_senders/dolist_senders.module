@@ -1,0 +1,33 @@
+<?php
+/**
+ * Implements   hook_menu().
+ */
+function dolist_senders_menu() {
+   $items['admin/structure/dolist/senders'] = array(
+    'title' => 'Senders',
+    'description' => 'Manage Dolist Senders',
+    'page arguments' => array('dolist_senders_form'),
+    'page callback' => 'senders_overview_page',
+    'access arguments' => array('administer dolist Senders'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'dolist_senders.admin.inc',
+    'weight' => 10
+  );
+
+
+  return $items;
+}
+
+function senders_overview_page(){
+ $rows = array();
+    return array(
+    '#theme' => 'table',
+    '#header' => array(
+      t('ID'),
+      t('Nom')
+    ),
+     '#rows' => $rows
+  );
+}
+
+?>

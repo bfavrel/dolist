@@ -1,13 +1,14 @@
 <?php
 
 function campaign_sms_overview_page(){
-  $api=new dolistAPI(variable_get('Api'),variable_get('ID'));
+  $api=new dolistAPI(variable_get('global_settings_api_key'),
+  variable_get('global_settings_account_id'));
   $result=$api->getStatsCampaignsSms();
  $rows = array();
  foreach ($result as $key=>$csms) {
       if ($csms->Status=='10000'){
      $rows[] = array(
-      $csms->DateCreate,
+      $newDate = date("d F Y H:i", strtotime($csms->DateCreate)),
       $csms->DefaultPrefix,
       $csms->Message->Name,
       $csms->NbMembers,
@@ -39,7 +40,8 @@ function campaign_sms_overview_page(){
 }
 
 function campaign_sms_send_overview_page(){
-  $api=new dolistAPI(variable_get('Api'),variable_get('ID'));
+  $api=new dolistAPI(variable_get('global_settings_api_key'),
+  variable_get('global_settings_account_id'));
   $result=$api->getStatsCampaignsSms();
  $rows = array();
  foreach ($result as $key=>$csms) {
@@ -80,7 +82,7 @@ function dolist_campaign_campaign_sms_form($form, &$form_state) {
  function dolist_campaign_sms_simulate_form($form,&$form_state,$idcsms) {
   $form=array();
   $form_state['c'] = $idcsms;
-  $form['segment_id'] = array(
+  $form['campaign_sms_segment_id'] = array(
     '#type' => 'textfield',
     '#title' => 'Segment Id',
     '#description' => 'Saisissez l Id du segment à lier à votre campagne',
@@ -96,7 +98,7 @@ function dolist_campaign_campaign_sms_form($form, &$form_state) {
  function dolist_campaign_sms_sendtest_form($form,&$form_state,$idcsms) {
   $form=array();
   $form_state['c'] = $idcsms;
-  $form['segment_id'] = array(
+  $form['campaign_sms_segment_id'] = array(
     '#type' => 'textfield',
     '#title' => 'Segment Id',
     '#description' => 'Saisissez l Id du segment à lier à votre campagne',
@@ -112,7 +114,7 @@ function dolist_campaign_campaign_sms_form($form, &$form_state) {
 function dolist_campaign_sms_sendreal_form($form,&$form_state,$idcsms) {
   $form=array();
   $form_state['c'] = $idcsms;
-  $form['segment_id'] = array(
+  $form['campaign_sms_segment_id'] = array(
     '#type' => 'textfield',
     '#title' => 'Segment Id',
     '#description' => 'Saisissez l Id du segment à lier à votre campagne',
@@ -130,7 +132,7 @@ function dolist_campaign_sms_sendreal_form($form,&$form_state,$idcsms) {
 function dolist_campaign_sms_form($form,&$form_state) {
 
 	 $form=array();
-  $form['message_sms_id'] = array(
+  $form['campaign_sms_message_sms_id'] = array(
     '#type' => 'textfield',
     '#title' => 'Name',
     '#default_value' => '',
@@ -143,12 +145,13 @@ function dolist_campaign_sms_form($form,&$form_state) {
 }
 
 function create_campaign_sms($form,&$form_state){
-	$campaignsms=$form_state['values']['message_sms_id'];
-  $api=new dolistAPI(variable_get('Api'),variable_get('ID'));
+	$campaignsms=$form_state['values']['campaign_sms_message_sms_id'];
+  $api=new dolistAPI(variable_get('global_settings_api_key'),
+  variable_get('global_settings_account_id'));
   $result=$api->createCampaignSms($campaignsms);
   entity_form_field_validate('campaignsms', $form, $form_state);
   $sms = new stdClass();
-  $sms->idmessage = $form_state['values']['message_sms_id'];
+  $sms->idmessage = $form_state['values']['campaign_sms_message_sms_id'];
   
   // Enregistrement dans la base "books"
   drupal_write_record('campaignsms', $sms);
@@ -166,24 +169,27 @@ function create_campaign_sms($form,&$form_state){
 
 function simulate_campaign_sms($form,&$form_state){
 $id=$form_state['c'];
-  $segment=$form_state['values']['segment_id'];
- $api=new dolistAPI(variable_get('Api'),variable_get('ID'));
+  $segment=$form_state['values']['campaign_sms_segment_id'];
+ $api=new dolistAPI(variable_get('global_settings_api_key'),
+  variable_get('global_settings_account_id'));
   $result=$api->sendCampaignSmsSimulate($id,$segment);
   drupal_goto('admin/config/services/dolist/campaignssms');
 }
 
 function send_campaign_sms_bat($form,&$form_state){
   $id=$form_state['c'];
-  $segment=$form_state['values']['segment_id'];
- $api=new dolistAPI(variable_get('Api'),variable_get('ID'));
+  $segment=$form_state['values']['campaign_sms_segment_id'];
+ $api=new dolistAPI(variable_get('global_settings_api_key'),
+  variable_get('global_settings_account_id'));
   $result=$api->sendCampaignSmsTest($id,$segment);
   drupal_goto('admin/config/services/dolist/campaignsms');
 }
 
 function send_campaign_sms($form,&$form_state){
   $id=$form_state['c'];
-  $segment=$form_state['values']['segment_id'];
- $api=new dolistAPI(variable_get('Api'),variable_get('ID'));
+  $segment=$form_state['values']['campaign_sms_segment_id'];
+ $api=new dolistAPI(variable_get('global_settings_api_key'),
+  variable_get('global_settings_account_id'));
   $result=$api->sendCampaignSms($id,$segment);
   drupal_goto('admin/config/services/dolist/campaignsms');
 }

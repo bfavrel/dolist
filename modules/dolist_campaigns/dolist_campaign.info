@@ -1,6 +1,0 @@
-name = Dolist Campaigns
-description = Create, send and test Dolist campaigns.
-package = Dolist
-core = 7.x
-
-configure = admin/config/services/dolist/campaigns

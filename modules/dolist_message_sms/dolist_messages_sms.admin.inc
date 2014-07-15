@@ -19,11 +19,11 @@ function dolist_messages_sms_add_form($form,&$form_state) {
     '#required' => TRUE,
   );
   $form['message_sms_creation_text'] = array(
-     '#type' => 'textfield',
+     '#type' => 'textarea',
     '#title' => 'Text',
     '#default_value' => '',
     '#size' => 100,
-    '#maxlength' => 128,
+    '#maxlength' => 200,
     '#required' => TRUE,
     );
 
@@ -37,7 +37,8 @@ function create_message_sms($form,&$form_state){
 	$name=$form_state['values']['message_sms_creation_name'];
   $text=$form_state['values']['message_sms_creation_text'];
   
-	$api=new dolistAPI(variable_get('Api'),variable_get('ID'));
+	$api=new dolistAPI(variable_get('global_settings_api_key'),
+  variable_get('global_settings_account_id'));
   $result=$api->createMessageSms($name,$text);
   entity_form_field_validate('messagesms', $form, $form_state);
   $sms = new stdClass();

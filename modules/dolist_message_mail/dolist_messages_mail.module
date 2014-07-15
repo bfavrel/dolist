@@ -1,25 +1,68 @@
-<?php
+<?php 
+  
+
+
+
 /**
  * Implements   hook_menu().
  */
 function dolist_messages_mail_menu() {
-  $items['admin/config/services/dolist/messagesmail'] = array(
+  $items['admin/structure/dolist/messagesmail'] = array(
     'title' => 'Message Mail',
     'description' => 'Manage Dolist Messages',
-    'page arguments' => array('dolist_messages_mail_form'),
     'access arguments' => array('administer dolist messages mail'),
+    'page callback' => 'message_admin',
     'type' => MENU_LOCAL_TASK,
     'file' => 'dolist_messages_mail.admin.inc',
     'weight' => 10
   );
-  $items['admin/config/services/dolist/messagesmail/add'] = array(
+
+
+ $items['admin/structure/dolist/messagesmail/%message_type'] = array(
+   'title callback' => 'message_type_title',
+   'title arguments' => array(2),
+   'access arguments' => array('access content'),
+   'page arguments' => array(4),
+ );
+  
+ $items['admin/structure/dolist/messagesmail/%message_type/add'] = array(
+   'title' => 'add',
+   'access arguments' => array('access content'),
+   'type' => MENU_DEFAULT_LOCAL_TASK
+ );
+
+  $items['admin/structure/dolist/messagesmail/createtype'] = array(
+    'title' => 'Créer/Editer Types',
+    'page arguments' => array('dolist_messages_mail_form'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'file' => 'dolist_messages_mail.admin.inc',
+    'weight' => -10,
+  );
+
+  $items['admin/structure/dolist/messagesmail/addtype'] = array(
     'title' => 'Add a new Message Type',
     'description' => 'Add a new Dolist Message Type',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('dolist_messages_add_form'),
-    'access arguments' => array('administer dolist messages mail'),
+    'page arguments' => array('dolist_messages_sms_add_type_form'),
+    'access arguments' => array('administer dolist messages sms'),
     'file' => 'dolist_messages_mail.admin.inc',
     'type' => MENU_LOCAL_ACTION,
+  );
+
+  $items['admin/structure/dolist/messagesmail/createmail'] = array(
+    'title' => 'Instancier Types',
+    'type' => MENU_LOCAL_TASK,
+    'page arguments' => array('dolist_create_message_mail_form'),
+    'access arguments' => array('administer dolist messages mail'),
+    'file' => 'dolist_messages_mail.admin.inc',
+  );
+
+  $items['admin/structure/dolist/messagesmail/listmail'] = array(
+    'title' => 'Liste Messages créés',
+    'type' => MENU_LOCAL_TASK,
+    'page arguments' => array('dolist_list_message_form'),
+    'access arguments' => array('administer dolist messages mail'),
+    'file' => 'dolist_messages_mail.admin.inc',
   );
 
   return $items;

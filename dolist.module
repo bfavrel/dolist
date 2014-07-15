@@ -13,6 +13,7 @@ function dolist_menu() {
     'file' => 'dolist.admin.inc',
     'type' => MENU_NORMAL_ITEM,
   );
+ 
   $items['admin/config/services/dolist/global'] = array(
     'title' => 'Global Settings',
     'type' => MENU_DEFAULT_LOCAL_TASK,
@@ -36,7 +37,7 @@ function dolist_token_info() {
 	$client = new SoapClient($proxywsdl, array('trace' => 1, 'location' => $location));            
 
 	// Renseigner la clé d'authentification avec l'identifiant client
-	$authenticationInfos	= array('AuthenticationKey' => variable_get('Api'),'AccountID' => variable_get('ID'));
+	$authenticationInfos	= array('AuthenticationKey' => variable_get('global_settings_api_key'),'AccountID' => variable_get('global_settings_account_id'));
 	$authenticationRequest	= array('authenticationRequest' => $authenticationInfos);
 
 	// Demande du jeton d'authentification
@@ -55,12 +56,12 @@ function dolist_token_info() {
 			$clientContact = new SoapClient($proxywsdlContact, array('trace' => 1, 'location' => $locationContact));
 			// Création du jeton
 			$token = array(
-				'AccountID' => variable_get('ID'),
+				'AccountID' => variable_get('global_settings_account_id'),
 				'Key' => $result->GetAuthenticationTokenResult->Key
 			);
 			//Les critères de recherche des contacts
 			$contactFilter = array(
-				'Email' => variable_get('email'));
+				'Email' => variable_get('global_settings_email_test'));
 							
 		
 			$contactRequest = array(

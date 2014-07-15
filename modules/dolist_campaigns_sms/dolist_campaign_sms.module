@@ -3,7 +3,7 @@
  * Implements   hook_menu().
  */
 function dolist_campaign_sms_menu() {
-  $items['admin/config/services/dolist/campaignssms'] = array(
+  $items['admin/structure/dolist/campaignssms'] = array(
     'title' => 'Campaign Sms',
     'description' => 'Manage Dolist Campaigns Sms',
     'page arguments' => array('dolist_campaign_campaign_sms_form'),
@@ -14,14 +14,14 @@ function dolist_campaign_sms_menu() {
     'weight' => 10
   );
 
-  $items['admin/config/services/dolist/campaignssms/notsend'] = array(
+  $items['admin/structure/dolist/campaignssms/notsend'] = array(
     'title' => 'Not Send',
     'page arguments' => array('dolist_campaign_campaign_sms_form'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'file' => 'dolist_campaign_sms.admin.inc',
     'weight' => -10,
   );
-  $items['admin/config/services/dolist/campaignssms/send'] = array(
+  $items['admin/structure/dolist/campaignssms/send'] = array(
     'title' => 'Send',
     'type' => MENU_LOCAL_TASK,
     'page callback' => 'campaign_sms_send_overview_page',
@@ -30,7 +30,7 @@ function dolist_campaign_sms_menu() {
     'file' => 'dolist_campaign_sms.admin.inc',
   );
 
-  $items['admin/config/services/dolist/campaignssms/add'] = array(
+  $items['admin/structure/dolist/campaignssms/add'] = array(
     'title' => 'Add a Campaign Sms',
     'description' => 'Add a new Dolist campaign Sms.',
     'page callback' => 'drupal_get_form',
@@ -40,7 +40,7 @@ function dolist_campaign_sms_menu() {
     'type' => MENU_LOCAL_ACTION,
   );
 
-   $items['admin/config/services/dolist/campaignssms/%/simulate'] = array(
+   $items['admin/structure/dolist/campaignssms/%/simulate'] = array(
     'title' => 'Simulate a Campaign Sms sending',
     'description' => 'Simulate a Campaign Sms sending',
     'page callback' => 'drupal_get_form',
@@ -50,7 +50,7 @@ function dolist_campaign_sms_menu() {
     'file' => 'dolist_campaign_sms.admin.inc',
   );
 
-  $items['admin/config/services/dolist/campaignssms/%/sendtest'] = array(
+  $items['admin/structure/dolist/campaignssms/%/sendtest'] = array(
     'title' => 'Send a BAT',
     'description' => 'Test campaign sms sending',
     'page callback' => 'drupal_get_form',
@@ -60,7 +60,7 @@ function dolist_campaign_sms_menu() {
     'file' => 'dolist_campaign_sms.admin.inc',
   );
 
-  $items['admin/config/services/dolist/campaignssms/%/sendreal'] = array(
+  $items['admin/structure/dolist/campaignssms/%/sendreal'] = array(
     'title' => 'Send a campaign sms',
     'description' => 'Send a campaign sms',
     'page callback' => 'drupal_get_form',

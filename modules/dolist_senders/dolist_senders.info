@@ -1,0 +1,9 @@
+name = Dolist Senders
+description = Display list of Senders
+package = Dolist
+core = 7.x
+
+files[] = ../../lib/DolistAPI.class.php
+
+
+configure = admin/structure/dolist/senders

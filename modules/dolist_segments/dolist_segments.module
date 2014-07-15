@@ -3,7 +3,7 @@
  * Implements   hook_menu().
  */
 function dolist_segments_menu() {
-  $items['admin/config/services/dolist/segments'] = array(
+   $items['admin/structure/dolist/segments'] = array(
     'title' => 'Segments',
     'description' => 'Manage Dolist Segments.',
     'page arguments' => array('dolist_segments_form'),
@@ -13,11 +13,14 @@ function dolist_segments_menu() {
     'file' => 'dolist_segments.admin.inc',
     'weight' => 10
   );
+
+
   return $items;
 }
 
 function segments_overview_page(){
-  $api=new dolistAPI(variable_get('Api'),variable_get('ID'));
+ $api=new dolistAPI(variable_get('global_settings_api_key'),
+  variable_get('global_settings_account_id'));
   $result=$api->getAllSegments();
  $rows = array();
  foreach ($result as $key=>$segment) {
@@ -26,7 +29,7 @@ function segments_overview_page(){
       $segment->Name,
       $segment->Id,
       $segment->ContactsCount,
-      $segment->ModifiedDate
+      $newDate = date("d F Y H:i", strtotime($segment->CreationDate))
       );
  }
     return array(
@@ -35,7 +38,7 @@ function segments_overview_page(){
       t('Nom'),
       t('ID'),
       t('Nombre de contacts'),
-      t('Date de Modification')
+      t('Date de Création')
     ),
      '#rows' => $rows
   );
