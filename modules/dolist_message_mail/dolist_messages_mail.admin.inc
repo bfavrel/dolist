@@ -1,177 +1,209 @@
 <?php
 
-function dolist_messages_mail_form($form, &$form_state) {
-  $form=array();
-  
-
-  return system_settings_form($form);
-}
-
-function dolist_create_message_mail_form($form,&$form_state) {
-
-   //$form['#submit'][] = 'create_contact';
-  return system_settings_form($form);
-}
-
-function dolist_messages_sms_add_type_form($form,&$form_state) {
-
-   
-	 $form=array();
-  $form['message_mail_creation_type'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Type Name',
-    '#default_value' => '',
-    '#size' => 100,
-    '#maxlength' => 128,
-    '#required' => TRUE,
-  );
-
-   $form['#submit'][] = 'dolist_messages_mail_entity_info';
-  return system_settings_form($form);
-}
-
-function dolist_messages_mail_entity_info($form,&$form_state) {
-$name=$form_state['values']['message_mail_creation_type'];
-  $entity = array();
-  $entity['messagesmail'] = array (
-    'label' => t('Messages'),
-    // la table definie dans books.install
-    'base table' => 'messagesmail',
-    'uri callback' => 'dolist_messages_mail_uri',
-    // on peut y attacher des fields
-    'fieldable' => TRUE,
-    'entity keys' => array(
-      // utilisé par entity_load pour requeter la base table
-      'id' => 'bid' ,
-      // utilisé par field_attach api pour charger les fields attachés
-      'bundle' => 'type'
-    ),
-    'bundle keys' => array('bundle' => 'type'),
-    'bundles' => array()
-  );
-  // Message simple bundle
-  $entity['messagesmail']['bundles']['message_simple'] = array(
-    'label' => t('Message Simple'),
-    'admin' => array(
-      // le chemin defini dans message_mail_menu
-      // Le Field api utilise ceci pour ajouter ses éléments MENU_LOCAL_TASK
-      // qui servent a administer et afficher les fields
-      'path' => 'admin/structure/dolist/messagesmail/%message_type',
-      // le "real path" une fois l'argument chargé
-      'real path' => 'admin/structure/dolist/messagesmail/message_simple',
-      // %books_type, c'est arg(2), donc on le passe ...
-      'bundle argument' => 5,
-      // on reste en "administer nodes" juste pour ne pas s'embeter avec les permissions :)
-      'access arguments' => array('administer nodes')
-    )
-  );
-
-  
-  return $entity;
-}
-
-function dolist_messages_mail_uri($messagesmail) {
-  return array('path' => 'structure/dolist/messagesmail/' . $messagesmail->bid );
-}
-
 /**
- * Argument loader for %message_type
- * Verification de ce qu'on passe via %message_type afin d'eviter toute tentative d'injection.
+ * @file
+ * Admin functions for the paragraphs module.
  */
-function message_type_load($message_type) {
-  switch ($message_type) {
-  
-  case 'message_simple':
-    return $message_type;
-  default:
-    return FALSE;
-  }
-}
 
-/**
- * On retourne juste le type de l'object
- */
-function message_type_title($message_type) {
-  return $message_type;
-}
+function dolist_messages_mail_admin_bundle_overview() {
+  $bundles = messages_bundle_load();
 
+  $header = array(t('Bundle name'), array('data' => t('Operations'), 'colspan' => '4'));
+  $rows = array();
+  foreach ($bundles as $bundle) {
+    drupal_set_message(t('Test rules with parameter with @username',
+      array('@username' => $bundle->bundle)));
+    $rows[] = array(
+      array(
+        'data' => $bundle->name . ' (' . $bundle->bundle . ')',
 
+      ),
+      array(
+        'data' => l(t('manage fields'), 'admin/structure/dolist/messagesmail/' . strtr($bundle->bundle, array('_' => '-')) . '/fields')
 
-/**
- * La page d'administration de nos Bundles message
- * Par defaut, on liste les bundles, si on clic sur un bundle,
- * on obtiens la page d'administration du bundle en question.
- * Il s'agit de la page où l'on va retrouver les tabs permettant
- * de gerer les fields attaché et l'affichage de ceux-ci.
- */
-function message_admin($type = NULL) {
-  if ($type) {
-    return drupal_get_form('message_add', $type);
-  }
-  else{
-    // pour faire plus simple, on hardcode les bundles existants.
-    $rows = array();
-    $rows[] = array(l(t('Message Simple'), 'admin/structure/dolist/messagesmail/message_simple'));
-    $header =  array('Type');
-    $content = array(
-      '#theme' => 'table', // on veut un affichage tableau
-      '#header' => $header, // Un peu d'informations pour les headers, c'est joli
-      '#rows' => $rows, // et les links vers les 2 bundles existants
+      ),
+      array(
+        'data' => l(t('manage display'), 'admin/structure/dolist/messagesmail/' . strtr($bundle->bundle, array('_' => '-')) . '/display')
+      ),
+      array(
+        'data' => l(t('edit bundle'), 'admin/structure/dolist/messagesmail/' . strtr($bundle->bundle, array('_' => '-')) . '/edit')
+      ),
+      array(
+        'data' => l(t('delete bundle'), 'admin/structure/dolist/messagesmail/' . strtr($bundle->bundle, array('_' => '-')) . '/delete')
+      ),
     );
-    return $content;
   }
+  if (empty($rows)) {
+    $output = t('No message bundles have been defined yet.');
+  }
+  else {
+    // Sort rows by field name.
+    ksort($rows);
+    $output = theme('table', array('header' => $header, 'rows' => $rows));
+  }
+  return $output;
 }
-
 /**
- * Ajout d'un nouveau book, du type selectionné.
+ * Form to create or edit an paragraph bundle.
  */
-function message_add($form ,&$form_state, $type) {
+function dolist_messages_mail_admin_bundle_form($form, &$form_state, $bundle = NULL) {
+
+  if (!isset($bundle) && !$bundle) {
+    // This is a new bundle
+    $bundle = new stdClass();
+    $bundle->name = '';
+    $bundle->bundle = '';
+    $bundle->locked = 0;
+  } else {
+    if(!$bundle) {
+      drupal_set_message(t('Could not load bundle'), 'error');
+      drupal_goto('admin/structure/dolist/messagesmail');
+    }
+  }
+
+  $form['#messages_bundle'] = $bundle;
+
   $form['name'] = array(
+    '#title' => t('Name'),
     '#type' => 'textfield',
-    '#title' => 'name'
+    '#default_value' => $bundle->name,
+    '#description' => t('The human-readable name of this bundle. It is recommended that this name begin with a capital letter and contain only letters, numbers, and spaces. This name must be unique.'),
+    '#required' => TRUE,
+    '#size' => 30,
   );
- 
-  $message = new stdClass();
-  $message->type = $type;
-  // l'object book lui même
-  $form['messagesmail'] = array(
+
+  if(!$bundle->locked) {
+
+    $form['bundle'] = array(
+      '#type' => 'machine_name',
+      '#default_value' => $bundle->bundle,
+      '#maxlength' => 32,
+      '#disabled' => $bundle->locked,
+      '#machine_name' => array(
+        'exists' => 'messages_bundle_load',
+      ),
+      '#description' => t('A unique machine-readable name for this paragraph bundle. It must only contain lowercase letters, numbers, and underscores.'),
+    );
+  }
+
+  $form['locked'] = array(
     '#type' => 'value',
-    '#value' => $message
+    '#value' => $bundle->locked,
   );
-  // le type du bundle, indispensable pour passer la validation
-  $form['type'] = array(
-    '#type' => 'value',
-    '#value' => $type
-  );
-  // On attache les formulaires des fields attachés
-  field_attach_form('messagesmail',$message, $form, $form_state);
- 
+
   $form['actions'] = array('#type' => 'actions');
-  $form['actions']['add'] = array(
+  $form['actions']['submit'] = array(
     '#type' => 'submit',
-    '#value' => 'add'
+    '#value' => t('Save Message bundle'),
+    '#weight' => 40,
   );
+
   return $form;
 }
 
-function message_add_validate($form, &$form_state) {
-  entity_form_field_validate('messagesmail', $form, $form_state);
+/**
+ * Form validation handler for paragraphs_admin_bundle_form().
+ *
+ * @see paragraphs_admin_bundle_form_submit()
+ */
+function dolist_messages_mail_admin_bundle_form_validate($form, &$form_state) {
+  $bundle = new stdClass();
+  $bundle->name = trim($form_state['values']['name']);
+
+  if (!$form_state['values']['locked']) {
+    $bundle->bundle = trim($form_state['values']['bundle']);
+    // 'theme' conflicts with theme_node_form().
+    // '0' is invalid, since elsewhere we check it using empty().
+    if (in_array($bundle->bundle, array('0', 'theme'))) {
+      form_set_error('type', t("Invalid machine-readable name. Enter a name other than %invalid.", array('%invalid' => $bundle->bundle)));
+    }
+  }
+
 }
 
-function message_add_submit($form, &$form_state) {
-  $message = $form_state['values']['messagesmail'];
-  $message->name = $form_state['values']['name'];
-  // Enregistrement dans la base "messagesmail"
-  drupal_write_record('messagesmail', $message);
-  // L'objet est "rempli" avec les propriétés issues de form_state
-  entity_form_submit_build_entity('messagesmail', $message, $form, $form_state);
-  // Laissons aussi une chance à d'autres modules d'intervenir sur les Fields attachés.
-  field_attach_submit('messagesmail', $message, $form, $form_state);
-  // On insere les données des fields dans la base de données.
-  field_attach_insert('messagesmail', $message);
-  // Et un petit message de confirmation.
-  drupal_set_message(
-    t('new @type got added' ,
-    array('@type' => $message->type))
-  );
+/**
+ * Submit handler for paragraphs_admin_bundle_form().
+ *
+ * @see paragraphs_admin_bundle_form()
+ */
+function dolist_messages_mail_admin_bundle_form_submit($form, &$form_state) {
+
+  $bundle = new stdClass();
+
+  if(!$form_state['values']['locked']) {
+    $bundle->bundle = trim($form_state['values']['bundle']);
+  } else {
+    $bundle->bundle = $form['#messages_bundle']->bundle;
+  }
+
+  $bundle->locked = 1;
+
+  $bundle->name = trim($form_state['values']['name']);
+
+  $variables = $form_state['values'];
+
+  // Remove everything that's been saved already - whatever's left is assumed
+  // to be a persistent variable.
+  foreach ($variables as $key => $value) {
+    if (isset($bundle->$key)) {
+      unset($variables[$key]);
+    }
+  }
+
+  unset($variables['form_token'], $variables['op'], $variables['submit'], $variables['delete'], $variables['reset'], $variables['form_id'], $variables['form_build_id']);
+
+
+  $status = dolist_messages_mail_bundle_save($bundle);
+
+  $t_args = array('%name' => $bundle->name);
+
+  if ($status == SAVED_UPDATED) {
+    drupal_set_message(t('The message bundle %name has been updated.', $t_args));
+  }
+  elseif ($status == SAVED_NEW) {
+    drupal_set_message(t('The message bundle %name has been added.', $t_args));
+    watchdog('node', 'Added message bundle %name.', $t_args, WATCHDOG_NOTICE, l(t('view'), 'admin/structure/dolist/messagesmail'));
+  }
+
+  $form_state['redirect'] = 'admin/structure/dolist/messagesmail';
+  return;
+}
+
+/**
+ * Menu callback; delete a single paragraph bundle
+ *
+ * @ingroup forms
+ */
+function dolist_messages_mail_admin_bundle_delete_form($form, &$form_state, $bundle) {
+      
+  if(!$bundle) {
+    drupal_set_message(t('Could not load bundle'), 'error');
+    drupal_goto('admin/structure/dolist/messagesmail');
+  }
+
+  $form['type'] = array('#type' => 'value', '#value' => $bundle->bundle);
+  $form['name'] = array('#type' => 'value', '#value' => $bundle->name);
+
+  $message = t('Are you sure you want to delete the message bundle %bundle?', array('%bundle' => $bundle->name));
+  $caption = '';
+  $caption .= '<p>' . t('This action cannot be undone. Content using the bundle will be broken.') . '</p>';
+
+  return confirm_form($form, $message, 'admin/structure/dolist/messagesmail', $caption, t('Delete'));
+}
+
+/**
+ * Process paragraph bundle delete confirm submissions.
+ *
+ * @see paragraphs_admin_bundle_delete_form()
+ */
+function dolist_messages_mail_admin_bundle_delete_form_submit($form, &$form_state) {
+  dolist_messages_mail_bundle_delete($form_state['values']['type']);
+
+  $t_args = array('%name' => $form_state['values']['name']);
+  drupal_set_message(t('The message bundle %name has been deleted.', $t_args));
+  watchdog('node', 'Deleted message bundle %name.', $t_args, WATCHDOG_NOTICE);
+
+
+  $form_state['redirect'] = 'admin/structure/dolist/messagesmail';
+  return;
 }

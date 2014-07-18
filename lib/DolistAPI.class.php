@@ -1593,20 +1593,21 @@ $detail = $fault->detail;
  * \param      segment      Id du segment à intégrer à la campagne
  * \param       id          Id de la campagne à envoyer
  */
-function sendCampaignSms($id,$segment){
+function sendCampaignSms($id,$segment,$date){
 try {
   $result_auth=$this->authenticationSegment();
   if (!is_null($result_auth->GetAuthenticationTokenResult) and $result_auth->GetAuthenticationTokenResult != '') {
     if ($result_auth->GetAuthenticationTokenResult->Key != '') {
         $client=$this->soapSmsService();
         $token=$this->jetonSmsService();
+    
       //Envoi de la campagne le 1 mai 2020 à 10h45
       $sendCampaignRequest = array(
         'token' => $token,
-        'campaignId' => 82582,
-        'segmentId' => 182,
+        'campaignId' => $id,
+        'segmentId' => $segment,
         'defaultPrefix' => '+33',
-        'sendDate' => mktime(10, 45, 0, 7, 1,2020)
+        'sendDate' => $date
       );
       
         // Envoi d'une campagne sms
@@ -1641,8 +1642,8 @@ try {
       $token=$this->jetonSmsService();
       $sendCampaignBATRequest = array(
         'token' => $token,
-        'campaignId' => 82582,
-        'segmentId' => 358,
+        'campaignId' => $id,
+        'segmentId' => $segment,
         'defaultPrefix' => '+33'
       );
     

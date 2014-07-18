@@ -1,25 +1,128 @@
 <?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the messages module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
 function dolist_messages_mail_schema() {
-  $schema['messagesmail'] = array(
+  $schema = array();
+  $schema['messages_bundle'] = array(
+    'description' => 'Stores information about messages bundles.',
     'fields' => array(
-      'bid' => array(
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE
-      ),
-      'type' => array(
-        'description' => 'the bundle property',
-        'type' => 'text',
-        'size' => 'medium',
-        'not null' => TRUE
+      'bundle' => array(
+        'description' => 'The machine-readable name of this bundle.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
       ),
       'name' => array(
-        'type' => 'text',
-        'size' => 'medium'
-      )
+        'description' => 'The human-readable name of this bundle.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'translatable' => TRUE,
+      ),
+      'locked' => array(
+        'description' => 'A boolean indicating whether the administrator can change the machine name of this bundle.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+      ),
     ),
-    'primary key' => array('bid')
+    'primary key' => array('bundle'),
+  );
+
+  $schema['messages_item'] = array(
+    'description' => 'Stores information about messages items.',
+    'fields' => array(
+      'item_id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique message item ID.',
+      ),
+      'revision_id' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'Default revision ID.',
+      ),
+      'bundle' => array(
+        'description' => 'The bundle of this message item.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'field_name' => array(
+        'description' => 'Field name of the host entity.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'archived' => array(
+        'description' => 'Boolean indicating whether the message item is archived.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('item_id'),
+  );
+
+  $schema['messages_item_revision'] = array(
+    'description' => 'Stores revision information about paragraph items.',
+    'fields' => array(
+      'revision_id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique revision ID.',
+      ),
+      'item_id' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'Message item ID.',
+      ),
+    ),
+    'primary key' => array('revision_id'),
+    'indexes' => array(
+      'item_id' => array('item_id'),
+    ),
+    'foreign keys' => array(
+      'versioned_messages_item' => array(
+        'table' => 'messages_item',
+        'columns' => array('item_id' => 'item_id'),
+      ),
+    ),
   );
   return $schema;
 }
-?>
+
+/**
+ * Implements hook_field_schema().
+ */
+function messages_field_schema($field) {
+  $columns = array();
+  if ($field['type'] == 'messages') {
+
+    $columns = array(
+      'value' => array(
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'The message item id.',
+      ),
+      'revision_id' => array(
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'The message item revision id.',
+      ),
+    );
+  }
+  return array(
+    'columns' => $columns,
+  );
+}
+

@@ -3,4 +3,12 @@ description = Create Message Types
 package = Dolist
 core = 7.x
 
+
+dependencies[] = entity
+
+files[] = MessagesItemEntity.inc
+files[] = MessagesItemMetadataController.inc
+
+
+
 configure = admin/structure/dolist/messagesmail
