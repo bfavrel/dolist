@@ -18,7 +18,7 @@ define('MESSAGES_DEFAULT_EDIT_MODE', 'open');
  * @return ParagraphsItemEntity
  *   The paragraphs item entity or FALSE.
  */
-function dolist_messages_mail_item_load($item_id, $reset = FALSE) {
+function dolist_messages_mail_item_load($item_id, $reset = FALSE){
   $result = dolist_messages_mail_item_load_multiple(array($item_id), array(), $reset);
   return $result ? reset($result) : FALSE;
 }
@@ -137,17 +137,36 @@ function dolist_messages_mail_menu() {
     'page arguments' => array('dolist_messages_mail_admin_bundle_form'),
     'page callback' => 'dolist_messages_mail_admin_bundle_overview',
     'access arguments' => array('administer messages bundles'),
-    'type' => MENU_LOCAL_TASK,
+   'type' => MENU_LOCAL_TASK,
     'file' => 'dolist_messages_mail.admin.inc',
   );
+
+    $items['admin/structure/dolist/messagesmail/bundle'] = array(
+    'title' => 'Messages Mail Bundle',
+    'page arguments' => array('dolist_messages_mail_admin_bundle_form'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'file' => 'dolist_messages_mail.inc',
+    'weight' => -10,
+  );
+  $items['admin/structure/dolist/messagesmail/instances'] = array(
+    'title' => 'Messages Mail Instances',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'dolist_messages_mail_instances_overview',
+    'page arguments' => array('dolist_messages_mail_display_instances_form'),
+    'access arguments' => array('administer messages_bundle'),
+    'file' => 'dolist_messages_mail.admin.inc',
+  );
+
+
   $items['admin/structure/dolist/messagesmail/add'] = array(
-    'title' => 'Add Paragraph Bundle',
+    'title' => 'Add Message Bundle',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('dolist_messages_mail_admin_bundle_form'),
     'access arguments' => array('administer messages bundles'),
     'type' => MENU_LOCAL_ACTION,
     'file' => 'dolist_messages_mail.admin.inc',
   );
+
   $items['admin/structure/dolist/messagesmail/%messages_bundle'] = array(
     'title' => 'Edit Message Bundle',
     'page callback' => 'drupal_get_form',
@@ -163,6 +182,13 @@ function dolist_messages_mail_menu() {
     'file' => 'dolist_messages_mail.admin.inc',
   );
 
+   $items['admin/structure/dolist/messagesmail/%messages_bundle/instantate'] = array(
+    'title' => 'Instantate Message Bundle',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('dolist_messages_mail_admin_bundle_instantate_form', 4),
+    'access arguments' => array('administer messages bundles'),
+    'file' => 'dolist_messages_mail.admin.inc',
+  );
   $items['dolist/messagesmail/edit/ajax'] = array(
     'title' => 'Edit item callback',
     'page callback' => 'dolist_messages_mail_edit_js',
@@ -849,9 +875,9 @@ function dolist_messages_mail_module_implements_alter(&$implementations, $hook) 
       // paragraphs at the end, so it has a chance to disable the implementation
       // of entity_translation that provides the form changes that will break
       // paragraphs.
-      $group = $implementations['messages'];
-      unset($implementations['messages']);
-      $implementations['messages'] = $group;
+      $group = $implementations['dolist_messages_mail'];
+      unset($implementations['dolist_messages_mail']);
+      $implementations['dolist_messages_mail'] = $group;
       break;
   }
 }

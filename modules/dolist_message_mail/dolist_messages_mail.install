@@ -50,15 +50,10 @@ function dolist_messages_mail_schema() {
         'type' => 'int',
         'not null' => TRUE,
         'description' => 'Default revision ID.',
+        'default' => 0,
       ),
       'bundle' => array(
         'description' => 'The bundle of this message item.',
-        'type' => 'varchar',
-        'length' => 32,
-        'not null' => TRUE,
-      ),
-      'field_name' => array(
-        'description' => 'Field name of the host entity.',
         'type' => 'varchar',
         'length' => 32,
         'not null' => TRUE,
@@ -104,7 +99,7 @@ function dolist_messages_mail_schema() {
 /**
  * Implements hook_field_schema().
  */
-function messages_field_schema($field) {
+function dolist_messages_mail_field_schema($field) {
   $columns = array();
   if ($field['type'] == 'messages') {
 

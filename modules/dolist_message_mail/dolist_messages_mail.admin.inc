@@ -8,14 +8,16 @@
 function dolist_messages_mail_admin_bundle_overview() {
   $bundles = messages_bundle_load();
 
-  $header = array(t('Bundle name'), array('data' => t('Operations'), 'colspan' => '4'));
+  $header = array(t('Bundle name'), array('data' => t('Operations'), 'colspan' => '5'));
   $rows = array();
   foreach ($bundles as $bundle) {
-    drupal_set_message(t('Test rules with parameter with @username',
-      array('@username' => $bundle->bundle)));
     $rows[] = array(
       array(
         'data' => $bundle->name . ' (' . $bundle->bundle . ')',
+
+      ),
+       array(
+        'data' => l(t('instantate bundle'), 'admin/structure/dolist/messagesmail/' . strtr($bundle->bundle, array('_' => '-')) . '/instantate')
 
       ),
       array(
@@ -42,6 +44,29 @@ function dolist_messages_mail_admin_bundle_overview() {
     $output = theme('table', array('header' => $header, 'rows' => $rows));
   }
   return $output;
+}
+
+function dolist_messages_mail_instances_overview(){
+  /* $select = db_select('messages_item', 'messages_item');
+  $select->fields('messages_item');
+    $execute = $select->execute();
+  $result =  $execute->fetchAll(PDO::FETCH_ASSOC);
+    $lesCourses=array();
+   foreach ($result as $cle => $val){
+      drupal_set_message(t('Test rules with parameter with @username',
+  array('@username' => $val['bundle'])));
+}
+*/
+$instances=entity_load('messages_item');
+dpm($instances);
+ 
+}
+
+
+
+
+
+function dolist_messages_mail_display_instances_form($form,&$form_state){
 }
 /**
  * Form to create or edit an paragraph bundle.
@@ -169,6 +194,62 @@ function dolist_messages_mail_admin_bundle_form_submit($form, &$form_state) {
   return;
 }
 
+ function dolist_messages_mail_admin_bundle_instantate_form($form,&$form_state,$bundle){
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => 'name'
+  );
+ $instance = new stdClass();
+  $instance->bundle = $bundle->name;
+  // l'object book lui même
+  $form['instance'] = array(
+    '#type' => 'value',
+    '#value' => $bundle
+  );
+
+   $form['bundle'] = array(
+    '#type' => 'value',
+    '#value' => $instance->bundle
+  );
+
+  field_attach_form('messages_item',$bundle, $form, $form_state);
+  
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['add'] = array(
+    '#type' => 'submit',
+    '#value' => 'add'
+  );
+  return $form;
+//TODO  : attache fields : messages_item 
+// essayer de stocker les instances dans messages_item.
+ }
+/**
+ * Validation des attached fields
+ */
+function dolist_messages_mail_admin_bundle_instantate_form_validate($form, &$form_state) {
+  drupal_set_message(t('Test rules actions'));
+  entity_form_field_validate('messages_item', $form, $form_state);
+}
+
+function dolist_messages_mail_admin_bundle_instantate_form_submit($form, &$form_state) {
+ $bundles = new stdClass();
+ $bundles = $form_state['values']['instance'];
+ $bundles->bundle = $form_state['values']['bundle'];
+  
+  // Enregistrement dans la base "books"
+  drupal_write_record('messages_item', $bundles);
+  // L'objet est "rempli" avec les propriétés issues de form_state
+  entity_form_submit_build_entity('messages_item', $bundles, $form, $form_state);
+  // Laissons aussi une chance à d'autres modules d'intervenir sur les Fields attachés.
+  field_attach_submit('messages_item', $bundles, $form, $form_state);
+  // On insere les données des fields dans la base de données.
+  field_attach_insert('messages_item', $bundles);
+  // Et un petit message de confirmation.
+  drupal_set_message( 
+    t('new @message got added' ,
+    array('@message' => $bundles->bundle))
+  );
+}
 /**
  * Menu callback; delete a single paragraph bundle
  *
