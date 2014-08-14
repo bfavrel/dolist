@@ -47,27 +47,43 @@ function dolist_messages_mail_admin_bundle_overview() {
 }
 
 function dolist_messages_mail_instances_overview(){
-  /* $select = db_select('messages_item', 'messages_item');
-  $select->fields('messages_item');
-    $execute = $select->execute();
-  $result =  $execute->fetchAll(PDO::FETCH_ASSOC);
-    $lesCourses=array();
-   foreach ($result as $cle => $val){
-      drupal_set_message(t('Test rules with parameter with @username',
-  array('@username' => $val['bundle'])));
-}
-*/
 $instances=entity_load('messages_item');
-dpm($instances);
+ $rows = array();
+ foreach ($instances as $key => $value) {
  
+     $rows[] = array(
+      $value->bundle,
+      $value->item_id,
+      l('View instance','admin/structure/dolist/messagesmail/'. strtr($value->item_id, array('_' => '-')) . '/viewinstance')
+      );
+ }
+    return array(
+    '#theme' => 'table',
+    '#header' => array(
+      t('Bundle'),
+      t('Instance n°'),
+      t('Fields')
+    ),
+     '#rows' => $rows
+  );
+
 }
 
 
 
 
 
-function dolist_messages_mail_display_instances_form($form,&$form_state){
+function dolist_messages_mail_admin_display_instance_form($form,&$form_state,$item_id){
+$instances=entity_load('messages_item',array($item_id));
+$content[]=array();
+foreach ($instances as $key => $value) {
+  // on oublie pas d'attacher les fields supplémentaires.
+  $content[] = field_attach_view('messages_item', $value ,'full');
 }
+  return $content;
+
+}
+
 /**
  * Form to create or edit an paragraph bundle.
  */
@@ -195,10 +211,6 @@ function dolist_messages_mail_admin_bundle_form_submit($form, &$form_state) {
 }
 
  function dolist_messages_mail_admin_bundle_instantate_form($form,&$form_state,$bundle){
-  $form['name'] = array(
-    '#type' => 'textfield',
-    '#title' => 'name'
-  );
  $instance = new stdClass();
   $instance->bundle = $bundle->name;
   // l'object book lui même
@@ -249,6 +261,8 @@ function dolist_messages_mail_admin_bundle_instantate_form_submit($form, &$form_
     t('new @message got added' ,
     array('@message' => $bundles->bundle))
   );
+  $form_state['redirect'] = 'admin/structure/dolist/messagesmail';
+  return;
 }
 /**
  * Menu callback; delete a single paragraph bundle

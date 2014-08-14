@@ -46,12 +46,6 @@ function dolist_messages_mail_schema() {
         'not null' => TRUE,
         'description' => 'Primary Key: Unique message item ID.',
       ),
-      'revision_id' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'description' => 'Default revision ID.',
-        'default' => 0,
-      ),
       'bundle' => array(
         'description' => 'The bundle of this message item.',
         'type' => 'varchar',
@@ -66,32 +60,6 @@ function dolist_messages_mail_schema() {
       ),
     ),
     'primary key' => array('item_id'),
-  );
-
-  $schema['messages_item_revision'] = array(
-    'description' => 'Stores revision information about paragraph items.',
-    'fields' => array(
-      'revision_id' => array(
-        'type' => 'serial',
-        'not null' => TRUE,
-        'description' => 'Primary Key: Unique revision ID.',
-      ),
-      'item_id' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'description' => 'Message item ID.',
-      ),
-    ),
-    'primary key' => array('revision_id'),
-    'indexes' => array(
-      'item_id' => array('item_id'),
-    ),
-    'foreign keys' => array(
-      'versioned_messages_item' => array(
-        'table' => 'messages_item',
-        'columns' => array('item_id' => 'item_id'),
-      ),
-    ),
   );
   return $schema;
 }
@@ -108,11 +76,6 @@ function dolist_messages_mail_field_schema($field) {
         'type' => 'int',
         'not null' => FALSE,
         'description' => 'The message item id.',
-      ),
-      'revision_id' => array(
-        'type' => 'int',
-        'not null' => FALSE,
-        'description' => 'The message item revision id.',
       ),
     );
   }

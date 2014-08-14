@@ -37,6 +37,9 @@ private $locationStatsCampaignMail =  "http://api.dolist.net/V2/StatisticsServic
 //Contrat MessageService
 private $proxywsdlSms = "http://api.dolist.net/V2/SMSService.svc?wsdl";
 private $locationSms = "http://api.dolist.net/V2/SMSService.svc/soap1.1";
+//Contrat FieldManagementService
+private $proxywsdlfield="http://api.dolist.net/CustomFieldManagementService.svc?wsdl";
+private $locationfield = "http://api.dolist.net/CustomFieldManagementService.svc/soap1.1";
 
 
 
@@ -176,6 +179,23 @@ private function soapSmsService(){
 }
 
 private function jetonSmsService(){
+$result_auth=$this->authenticationSegment();
+
+  // Création du jeton
+      $token = array(
+        'AccountID' => $this->account,
+        'Key' => $result_auth->GetAuthenticationTokenResult->Key
+      );
+return $token;      
+}
+
+private function soapFieldService(){
+  // Génération du proxy
+      $client = new SoapClient($this->proxywsdlfield, array('trace' => 1, 'location' => $this->locationfield));
+      return $client;
+}
+
+private function jetonFieldService(){
 $result_auth=$this->authenticationSegment();
 
   // Création du jeton
@@ -348,29 +368,23 @@ function createListContactFields() {
   $result=$this->authenticationService();
   if (!is_null($result->GetAuthenticationTokenResult) and $result->GetAuthenticationTokenResult != '') {
     if ($result->GetAuthenticationTokenResult->Key != '') {
-       $clientContact=$this->soapClientContactService();
-      $token=$this->jetonContactService();
-            //Les critères de recherche des contacts
-      $contactFilter = array(
-        'Email' => variable_get('global_settings_email_test'));
+       $clientContact=$this->soapFieldService();
+      $token=$this->jetonFieldService();
       
-      $contactRequest = array(
-        'Offset' => 0, //Optionnel: L'indice du 1er contact retourné. 
-        'AllFields' => true, //Indique si on doit retourner tous les champs
-        'Interest' => true, //Indique si les interets déclarés sont retourné par la requete
-        'LastModifiedOnly' => false, //Indique si la requete doit retourner uniquement les derniers contacts modifiés
-        'RequestFilter' => $contactFilter); //Optionnel   
+      $getFieldListRequest = array(
+       ); //Optionnel   
       
       $request = array(
         'token'=> $token,
-        'request'=> $contactRequest
+        'request'=> $getFieldListRequest
       );
       
       // Récupération de tous les contacts
-      $result = $clientContact->GetContact($request);
-      if (!is_null($result->GetContactResult) and $result->GetContactResult != '')
+      $result = $clientContact->GetFieldList($request);
+      if (!is_null($result->GetFieldListResult) and $result->GetFieldListResult != '')
       {
-        $contacts = $result->GetContactResult->ContactList->ContactData->CustomFields->CustomField;     
+        $contacts = $result->GetFieldListResult->FieldList->Field;  
+        
           $array=array();
           foreach($contacts as $valeur)
           {

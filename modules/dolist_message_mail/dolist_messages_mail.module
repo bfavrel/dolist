@@ -63,14 +63,12 @@ function dolist_messages_mail_entity_info() {
     'entity class' => 'MessagesItemEntity',
     'controller class' => 'EntityAPIController',
     'base table' => 'messages_item',
-    'revision table' => 'messages_item_revision',
     'fieldable' => TRUE,
     // For integration with Redirect module.
     // @see http://drupal.org/node/1263884
     'redirect' => FALSE,
     'entity keys' => array(
       'id' => 'item_id',
-      'revision' => 'revision_id',
       'bundle' => 'bundle',
     ),
     'module' => 'dolist',
@@ -178,6 +176,14 @@ function dolist_messages_mail_menu() {
     'title' => 'Delete Message Bundle',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('dolist_messages_mail_admin_bundle_delete_form', 4),
+    'access arguments' => array('administer messages bundles'),
+    'file' => 'dolist_messages_mail.admin.inc',
+  );
+
+  $items['admin/structure/dolist/messagesmail/%/viewinstance'] = array(
+    'title' => 'Display Message Instance',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('dolist_messages_mail_admin_display_instance_form', 4),
     'access arguments' => array('administer messages bundles'),
     'file' => 'dolist_messages_mail.admin.inc',
   );
