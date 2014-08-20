@@ -35,11 +35,7 @@ function dolist_global_settings_form($form, &$form_state) {
     '#required' => TRUE,
   );
 
-  $form['global_settings_fields_contact_dolist'] = array(
-    '#type' => 'submit',
-    '#value' => 'Generer liste des champs',
-    '#submit' => array('generate_dolist_fields'),
-  );
+ $form['#submit'][] = 'generate_dolist_fields';
 
   return system_settings_form($form);
 }
