@@ -982,7 +982,7 @@ function getMessages($id)
             watchdog('messages','Html : @html',array('@html' => $msg->ContentHtml));
             watchdog('messages','Encoding : @encoding',array('@encoding' => $msg->Encoding));
             watchdog('messages','Type : @type',array('@type' => $msg->MessageType)); 
-
+            return $msg->ContentHtml;
 
           }
         }
@@ -1277,13 +1277,14 @@ try{
       $result = $client->GetCampaigns($getCampaignsRequest);
       if (!is_null($result->GetCampaignsResult) and $result->GetCampaignsResult != '')
       {
-         $campaigns = $result->GetCampaignsResult->CampaignDetailsList;
+         $campaigns = $result->GetCampaignsResult->CampaignDetailsList->CampaignDetails[0]->ID ;
       
-        watchdog('get_all_campaigns_mail','@mail',array('@mail'=>count($campaigns)));
+        watchdog('get_all_campaigns_mail','@mail',array('@mail'=>$campaigns));
       }
       else {
         watchdog('get_all_campaigns_mail','les campagnes n ont pas pu être récupérées');
       }
+
 }
 }
 }

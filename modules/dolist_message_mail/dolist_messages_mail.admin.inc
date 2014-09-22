@@ -210,6 +210,40 @@ function dolist_messages_mail_admin_bundle_form_submit($form, &$form_state) {
   return;
 }
 
+function dolist_messages_mail_admin_import_model_form($form,&$form_state){
+   $form=array();
+  $form['import_model_id'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Model Id',
+    '#description' => 'Saisissez l Id du modèle de message à importer',
+    '#default_value' => '',
+    '#size' => 100,
+    '#maxlength' => 128,
+    '#required' => TRUE,
+  );
+   $form['#submit'][] = 'import_model_dolist';
+  return system_settings_form($form);
+}
+
+
+function import_model_dolist($form,&$form_state){
+  //TODO : domdocument import et création bundle
+  $idmodel=$form_state['values']['import_model_id'];
+ 
+   $api=new dolistAPI(variable_get('global_settings_api_key'),
+  variable_get('global_settings_account_id'));
+  $result=$api->getMessages($idmodel);
+   watchdog('import','Id : @id',array('@id' => $result));
+   $doc = new DOMDocument();
+    $doc->loadHTML($result);
+    $books = $doc->getElementsByTagName('body');
+ foreach ($books as $book) {
+      watchdog('import','Id : @id',array('@id' => $book->nodeValue));
+}
+   
+}
+
+
  function dolist_messages_mail_admin_bundle_instantate_form($form,&$form_state,$bundle){
  $instance = new stdClass();
   $instance->bundle = $bundle->name;

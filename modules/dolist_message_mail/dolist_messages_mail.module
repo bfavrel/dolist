@@ -165,6 +165,15 @@ function dolist_messages_mail_menu() {
     'file' => 'dolist_messages_mail.admin.inc',
   );
 
+$items['admin/structure/dolist/messagesmail/import'] = array(
+    'title' => 'Import Dolist Message Model',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('dolist_messages_mail_admin_import_model_form'),
+    'access arguments' => array('administer messages bundles'),
+    'type' => MENU_LOCAL_ACTION,
+    'file' => 'dolist_messages_mail.admin.inc',
+  );
+
   $items['admin/structure/dolist/messagesmail/%messages_bundle'] = array(
     'title' => 'Edit Message Bundle',
     'page callback' => 'drupal_get_form',

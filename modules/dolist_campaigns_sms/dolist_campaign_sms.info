@@ -4,4 +4,5 @@ package = Dolist
 core = 7.x
 
 dependencies[] = entity
+dependencies[] = paragraphs
 configure = admin/structure/dolist/campaignssms
