@@ -211,7 +211,7 @@ function dolist_messages_mail_admin_bundle_form_submit($form, &$form_state) {
 }
 
 function dolist_messages_mail_admin_import_model_form($form,&$form_state){
-   $form=array();
+   /*$form=array();
   $form['import_model_id'] = array(
     '#type' => 'textfield',
     '#title' => 'Model Id',
@@ -222,7 +222,55 @@ function dolist_messages_mail_admin_import_model_form($form,&$form_state){
     '#required' => TRUE,
   );
    $form['#submit'][] = 'import_model_dolist';
-  return system_settings_form($form);
+  return system_settings_form($form);*/
+   $bundle = new stdClass();
+    $bundle->name = 'creation_prog';
+    $bundle->bundle = 'bundle_creation_prog';
+    $bundle->locked = 0;
+
+
+
+  $status = dolist_messages_mail_bundle_save($bundle);
+$field = array(
+        'field_name' => 'field_creation_prog',
+        'type' => 'text',
+    );
+    field_create_field($field);
+
+
+$instance = array(
+    'field_name' => 'field_creation_prog',
+    'required' => 'true', 
+    'label' => 'Field créé programmatiquement',
+    'description' => st('field créé programmatiquement'),
+    'entity_type' => 'messages_item',
+    'bundle' => 'bundle_creation_prog',
+    'display' => array(
+  'teaser' => array(
+    'label' => 'hidden',
+    'type' => 'hidden',
+  ),
+  'default' => array(
+    'label' => 'hidden',
+    'type' => 'hidden',
+  ),
+
+),
+
+);
+field_create_instance($instance);
+
+  $t_args = array('%name' => $bundle->name);
+
+  if ($status == SAVED_UPDATED) {
+    drupal_set_message(t('The paragraph bundle %name has been updated.', $t_args));
+  }
+  elseif ($status == SAVED_NEW) {
+    drupal_set_message(t('The paragraph bundle %name has been added.', $t_args));
+    watchdog('node', 'Added paragraph bundle %name.', $t_args, WATCHDOG_NOTICE, l(t('view'), 'admin/structure/paragraphs'));
+  }
+
+  return;
 }
 
 
@@ -266,8 +314,7 @@ function import_model_dolist($form,&$form_state){
     '#value' => 'add'
   );
   return $form;
-//TODO  : attache fields : messages_item 
-// essayer de stocker les instances dans messages_item.
+
  }
 /**
  * Validation des attached fields

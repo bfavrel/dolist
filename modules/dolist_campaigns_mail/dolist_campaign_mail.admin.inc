@@ -70,41 +70,42 @@ $form['campaign_mail_message_id'] = array(
     '#maxlength' => 128,
     '#required' => TRUE,
   );
-
 $form['campaign_mail_culture'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Culture',
-    '#description' => ' Culture de la campagne',
-    '#default_value' => '',
-    '#size' => 100,
-    '#maxlength' => 128,
-    '#required' => TRUE,
-  );
+'#type' => 'radios',
+'#title' => t('Culture'),
+'#description' => t('Culture de la camapagne.'),
+'#options' => array(
+'en'=>t('en'),
+'fr'=>t('fr'),
+),
+);
 
 $form['campaign_mail_format_link'] = array(
-    '#type' => 'textfield',
+    '#type' => 'radios',
     '#title' => 'Format Link',
     '#description' => 'Type d affichage pour les liens techniques (Html / Texte)',
-    '#default_value' => '',
-    '#size' => 100,
-    '#maxlength' => 128,
-    '#required' => TRUE,
-  );
-
-
-# the options to display in our checkboxes
-$toppings = array(
-  'oui' => t('Oui'),
-  'non' => t('Non')
+    '#options' => array(
+    'Html'=>t('Html'),
+    'Text'=>t('Text'),
+),
 );
+
+
 
 # the drupal checkboxes form field definition
 $form['VersionOnline'] = array(
   '#title' => t('Version Online'),
-  '#type' => 'checkboxes',
+  '#type' => 'radios',
   '#description' => t(' Ajout du lien pour la version en ligne.'),
-  '#options' => $toppings,
-);
+  '#options' => array(
+  'oui'=>t('Oui'),
+  'non'=>t('Non'),
+),
+ );
+
+$form['tracking_domain'] = array(
+  '#markup' => variable_get('global_settings_campaign_mail_tracking_domain'),
+  );
  $form['#submit'][] = 'create_campaign_mail';
   return system_settings_form($form);
 }
@@ -119,7 +120,10 @@ function create_campaign_mail($form,&$form_state){
     $format=$form_state['values']['campaign_mail_format_link'];
     $tracking=variable_get('global_settings_campaign_mail_tracking_domain');
 
-    $api=new dolistAPI(variable_get('global_settings_api_key'),
+
+
+
+   $api=new dolistAPI(variable_get('global_settings_api_key'),
   variable_get('global_settings_account_id'));
     $result=$api->createCampaignMail($fromaddress,$fromname,$replyaddress,
         $replyname,$subject,$messageid,$tracking,$culture,$format);

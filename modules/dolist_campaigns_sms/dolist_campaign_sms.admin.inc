@@ -190,29 +190,10 @@ $id=$form_state['c'];
   $result=$api->sendCampaignSmsSimulate($id,$segment);
   drupal_goto('admin/structure/dolist/campaignssms');
   
-/*
-  $bundle = new stdClass();
-    $bundle->name = 'test3';
-    $bundle->bundle = 'bundle_test3';
-    $bundle->locked = 0;
 
+ 
 
-
-  $status = paragraphs_bundle_save($bundle);
-
-  $t_args = array('%name' => $bundle->name);
-
-  if ($status == SAVED_UPDATED) {
-    drupal_set_message(t('The paragraph bundle %name has been updated.', $t_args));
-  }
-  elseif ($status == SAVED_NEW) {
-    drupal_set_message(t('The paragraph bundle %name has been added.', $t_args));
-    watchdog('node', 'Added paragraph bundle %name.', $t_args, WATCHDOG_NOTICE, l(t('view'), 'admin/structure/paragraphs'));
-  }
-
-  return;
-
-  */
+  
 }
 
 function send_campaign_sms_bat($form,&$form_state){
